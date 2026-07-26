@@ -22,6 +22,7 @@ if (-not (Test-Path -LiteralPath $profileFile -PathType Leaf)) {
     throw "Unknown Minecraft version profile '$Profile' (expected $profileFile)"
 }
 
+$profileProperties = @{}
 $gradleProperties = @()
 foreach ($line in Get-Content -LiteralPath $profileFile) {
     $trimmed = $line.Trim()
@@ -36,6 +37,7 @@ foreach ($line in Get-Content -LiteralPath $profileFile) {
 
     $key = $trimmed.Substring(0, $separator).Trim()
     $value = $trimmed.Substring($separator + 1).Trim()
+    $profileProperties[$key] = $value
     $gradleProperties += "-P$key=$value"
 }
 
@@ -62,9 +64,10 @@ if ($Task -in @('build', 'assemble')) {
     $artifactDirectory = Join-Path $repositoryRoot "build/multiversion/$Profile"
     New-Item -ItemType Directory -Force -Path $artifactDirectory | Out-Null
 
+    $expectedSuffix = "+$($profileProperties['minecraft_version'])+neoforge.jar"
     $artifacts = @(
         Get-ChildItem -LiteralPath $libraryDirectory -Filter '*.jar' |
-                Where-Object { $_.Name -notmatch '-(sources|dev)(-all)?\.jar$' }
+                Where-Object { $_.Name.EndsWith($expectedSuffix, [StringComparison]::OrdinalIgnoreCase) }
     )
     if ($artifacts.Count -eq 0) {
         throw "No release artifact found in $libraryDirectory"
