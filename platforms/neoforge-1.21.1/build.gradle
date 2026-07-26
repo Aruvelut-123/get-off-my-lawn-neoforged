@@ -1,0 +1,440 @@
+import net.fabricmc.loom.task.RemapJarTask
+import net.fabricmc.mappingio.MappingReader
+import net.fabricmc.mappingio.tree.MemoryMappingTree
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
+
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'dev.architectury.loom' version '1.13-SNAPSHOT'
+    id 'architectury-plugin' version '3.4-SNAPSHOT'
+}
+
+group = project.maven_group
+version = "${project.mod_version}+${project.minecraft_version}+neoforge"
+
+base {
+    archivesName = project.archives_base_name
+}
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(project.java_version as int)
+}
+
+architectury {
+    platformSetupLoomIde()
+    neoForge()
+}
+
+loom {
+    runs {
+        server {
+            server()
+            runDir '../../run/1.21.1-server'
+            programArgs '--nogui'
+        }
+    }
+}
+
+sourceSets.main.java.setSrcDirs(['../../src/1.21.1/java'])
+sourceSets.main.resources.setSrcDirs([])
+
+def prepareLegacyResources = tasks.register('prepareLegacyResources', Sync) {
+    from '../../src/main/resources'
+    into layout.buildDirectory.dir('generated/resources/legacy')
+
+    doLast {
+        // 26.1 accepts compact ingredient strings, while 1.21.1 still
+        // requires the object form. Generate that compatibility form from
+        // the shared recipes so both targets keep the same recipe content.
+        fileTree(new File(destinationDir, 'data/goml/recipe')).matching {
+            include '*.json'
+        }.files.each { recipeFile ->
+            def recipe = new JsonSlurper().parse(recipeFile)
+            if (recipe.key instanceof Map) {
+                recipe.key.replaceAll { symbol, ingredient ->
+                    if (!(ingredient instanceof String)) {
+                        return ingredient
+                    }
+                    ingredient.startsWith('#')
+                            ? [tag: ingredient.substring(1)]
+                            : [item: ingredient]
+                }
+            }
+            recipeFile.text = JsonOutput.prettyPrint(JsonOutput.toJson(recipe)) + System.lineSeparator()
+        }
+    }
+}
+
+sourceSets.main.resources.srcDir prepareLegacyResources
+
+configurations {
+    rtreeEmbedded
+    sguiIntermediary
+    placeholderIntermediary
+    commonProtectionIntermediary
+}
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://maven.neoforged.net/releases/' }
+    maven { url = 'https://maven.quiltmc.org/repository/release/' }
+    maven { url = 'https://maven.su5ed.dev/releases' }
+    maven { url = 'https://maven.nucleoid.xyz/' }
+    maven { url = 'https://maven.jamieswhiteshirt.com/libs-release/' }
+    maven { url = 'https://repo.bluecolored.de/releases' }
+    maven { url = 'https://repo.mikeprimm.com/' }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings loom.layered {
+        mappings("org.quiltmc:quilt-mappings:${project.minecraft_version}+build.9:intermediary-v2")
+        officialMojangMappings()
+    }
+    neoForge "net.neoforged:neoforge:${project.neo_version}"
+
+    // The port only needs the loader/base compatibility layer. Depending on
+    // the base module avoids pulling dozens of unrelated client/gameplay
+    // mixins into a dedicated server; the full FFAPI jar still satisfies this
+    // module dependency when users already have it installed.
+    implementation "org.sinytra.forgified-fabric-api:fabric-api-base:${project.ffapi_base_version}"
+    implementation "org.sinytra:forgified-fabric-loader:${project.ffloader_version}:full"
+
+    rtreeEmbedded("com.jamieswhiteshirt:rtree-3i-lite-fabric:${project.rtree_version}") {
+        transitive = false
+    }
+    sguiIntermediary("eu.pb4:sgui:${project.sgui_version}") {
+        transitive = false
+    }
+    placeholderIntermediary("eu.pb4:placeholder-api:${project.placeholder_version}") {
+        transitive = false
+    }
+    commonProtectionIntermediary("eu.pb4:common-protection-api:${project.common_protection_api_version}") {
+        transitive = false
+    }
+
+    compileOnly "us.dynmap:DynmapCoreAPI:${project.dynmap_version}"
+    compileOnly "de.bluecolored:bluemap-api:${project.bluemap_version}"
+}
+
+def remapMinecraftIntermediary = tasks.register('remapMinecraftIntermediary', RemapJarTask) {
+    inputFile.set(layout.file(provider {
+        def matches = fileTree("${project.projectDir}/.gradle/loom-cache/minecraftMaven").files.findAll {
+            it.name.contains('minecraft-merged') && it.name.endsWith('.jar') && !it.name.endsWith('-sources.jar')
+        }
+        if (matches.size() != 1) {
+            throw new GradleException("Expected one named Minecraft jar, found ${matches*.name}")
+        }
+        matches.first()
+    }))
+    archiveFileName.set("minecraft-${project.minecraft_version}-intermediary.jar")
+    destinationDirectory.set(layout.buildDirectory.dir('intermediaryClasspath'))
+    sourceNamespace.set('named')
+    targetNamespace.set('intermediary')
+    classpath.setFrom(files())
+    addNestedDependencies.set(false)
+}
+
+def registerIntermediaryRemap = { String taskName, Configuration inputConfiguration, String outputName ->
+    tasks.register(taskName, RemapJarTask) {
+        dependsOn remapMinecraftIntermediary
+        inputFile.set(layout.file(provider { inputConfiguration.singleFile }))
+        archiveFileName.set(outputName)
+        destinationDirectory.set(layout.buildDirectory.dir('remappedLibraries'))
+        sourceNamespace.set('intermediary')
+        targetNamespace.set('named')
+        // Tiny Remapper needs its classpath in the source namespace to resolve
+        // inherited/interface members. Without this, only class names are
+        // remapped and intermediary method names leak into the output.
+        classpath.setFrom(remapMinecraftIntermediary.flatMap { it.archiveFile })
+        addNestedDependencies.set(false)
+    }
+}
+
+def remapSgui = registerIntermediaryRemap(
+        'remapSguiIntermediary',
+        configurations.sguiIntermediary,
+        "sgui-${project.sgui_version}-named.jar"
+)
+def remapPlaceholder = registerIntermediaryRemap(
+        'remapPlaceholderIntermediary',
+        configurations.placeholderIntermediary,
+        "placeholder-api-${project.placeholder_version}-named.jar"
+)
+def remapCommonProtection = registerIntermediaryRemap(
+        'remapCommonProtectionIntermediary',
+        configurations.commonProtectionIntermediary,
+        "common-protection-api-${project.common_protection_api_version}-named.jar"
+)
+
+dependencies {
+    compileOnly files(configurations.rtreeEmbedded)
+    compileOnly files(remapSgui.flatMap { it.archiveFile })
+    compileOnly files(remapPlaceholder.flatMap { it.archiveFile })
+    compileOnly files(remapCommonProtection.flatMap { it.archiveFile })
+}
+
+def generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
+    def replaceProperties = [
+            minecraft_version_range: project.minecraft_version_range,
+            neo_version_range      : project.neo_version_range,
+            loader_version_range   : project.loader_version_range,
+            java_version           : project.java_version,
+            mod_id                 : project.mod_id,
+            mod_name               : project.mod_name,
+            mod_license            : project.mod_license,
+            mod_version            : project.version,
+            mod_description        : project.mod_description,
+            mod_authors            : project.mod_authors,
+            ffapi_base_version     : project.ffapi_base_version
+    ]
+
+    inputs.properties replaceProperties
+    expand replaceProperties
+    from '../../src/1.21.1/templates'
+    into layout.buildDirectory.dir('generated/sources/modMetadata')
+}
+
+sourceSets.main.resources.srcDir generateModMetadata
+
+def remappedEmbeddedLibraries = files(
+        remapSgui.flatMap { it.archiveFile },
+        remapPlaceholder.flatMap { it.archiveFile },
+        remapCommonProtection.flatMap { it.archiveFile }
+)
+
+def extractEmbeddedSguiResources = tasks.register('extractEmbeddedSguiResources', Sync) {
+    dependsOn remapSgui
+    from { zipTree(remapSgui.get().archiveFile.get().asFile) }
+    include 'sgui.mixins.json', 'sgui-refmap.json'
+    into layout.buildDirectory.dir('generated/resources/embeddedSgui')
+
+    doLast {
+        def mixinFile = destinationDir.toPath().resolve('sgui.mixins.json').toFile()
+        def mixinConfig = new JsonSlurper().parse(mixinFile)
+        mixinConfig.injectors = (mixinConfig.injectors ?: [:]) + [defaultRequire: 0]
+        mixinFile.text = JsonOutput.prettyPrint(JsonOutput.toJson(mixinConfig)) + System.lineSeparator()
+
+        // SGUI's bytecode is intermediary, but its annotation selectors use
+        // Yarn names and its refmap points those selectors back to intermediary.
+        // Once the classes are remapped to Mojang names, rewrite the refmap
+        // values to the same named namespace as the rest of the NeoForge mod.
+        def mappings = new MemoryMappingTree(true)
+        MappingReader.read(loom.mappingConfiguration.tinyMappings, mappings)
+        int intermediaryNamespace = mappings.getNamespaceId('intermediary')
+        int namedNamespace = mappings.getNamespaceId('named')
+
+        def mapMemberSelector
+        mapMemberSelector = { String selector ->
+            String owner = null
+            String member = selector
+            if (selector.startsWith('L')) {
+                int ownerEnd = selector.indexOf(';')
+                if (ownerEnd > 1) {
+                    owner = selector.substring(1, ownerEnd)
+                    member = selector.substring(ownerEnd + 1)
+                }
+            }
+
+            boolean method = member.contains('(')
+            int descriptorStart = method ? member.indexOf('(') : member.indexOf(':')
+            if (descriptorStart < 0) {
+                return selector
+            }
+
+            String name = member.substring(0, descriptorStart)
+            String descriptor = member.substring(descriptorStart + (method ? 0 : 1))
+            def mapping
+            if (owner != null) {
+                def ownerMapping = mappings.getClass(owner, intermediaryNamespace)
+                def members = ownerMapping == null
+                        ? []
+                        : (method ? ownerMapping.methods : ownerMapping.fields)
+                mapping = members.find {
+                    it.getName(intermediaryNamespace) == name &&
+                            it.getDesc(intermediaryNamespace) == descriptor
+                }
+            } else {
+                def candidates = mappings.classes.collectMany { clazz ->
+                    def members = method ? clazz.methods : clazz.fields
+                    members.findAll {
+                        it.getName(intermediaryNamespace) == name &&
+                                it.getDesc(intermediaryNamespace) == descriptor
+                    }
+                }
+                mapping = candidates.size() == 1 ? candidates.first() : null
+            }
+            if (mapping == null) {
+                def candidates = mappings.classes.collectMany { clazz ->
+                    def members = method ? clazz.methods : clazz.fields
+                    members.findAll {
+                        it.getName(intermediaryNamespace) == name &&
+                                it.getDesc(intermediaryNamespace) == descriptor
+                    }
+                }
+                mapping = candidates.size() == 1 ? candidates.first() : null
+            }
+
+            String mappedName = mapping?.getName(namedNamespace) ?: name
+            String mappedDescriptor = mappings.mapDesc(
+                    descriptor,
+                    intermediaryNamespace,
+                    namedNamespace
+            )
+            String mappedOwner = owner == null
+                    ? null
+                    : mappings.mapClassName(owner, intermediaryNamespace, namedNamespace)
+            String mappedMember = method
+                    ? "${mappedName}${mappedDescriptor}"
+                    : "${mappedName}:${mappedDescriptor}"
+            mappedOwner == null ? mappedMember : "L${mappedOwner};${mappedMember}"
+        }
+
+        def refmapFile = destinationDir.toPath().resolve('sgui-refmap.json').toFile()
+        def refmap = new JsonSlurper().parse(refmapFile)
+        refmap.mappings.each { mixin, selectors ->
+            selectors.replaceAll { key, value -> mapMemberSelector(value as String) }
+        }
+        refmap.remove('data')
+        refmapFile.text = JsonOutput.prettyPrint(JsonOutput.toJson(refmap)) + System.lineSeparator()
+    }
+}
+
+sourceSets.main.resources.srcDir extractEmbeddedSguiResources
+
+def extractEmbeddedLibraries = tasks.register('extractEmbeddedLibraries', Sync) {
+    dependsOn remapSgui, remapPlaceholder, remapCommonProtection
+    from {
+        (configurations.rtreeEmbedded.files + remappedEmbeddedLibraries.files).collect { zipTree(it) }
+    }
+    exclude 'META-INF/**'
+    exclude 'fabric.mod.json'
+    exclude '*.accesswidener'
+    exclude '*.mixins.json'
+    exclude 'icon.png'
+    exclude 'assets/icon.png'
+    exclude 'eu/pb4/placeholders/impl/LoaderUtil.class'
+    exclude 'eu/pb4/placeholders/impl/placeholder/builtin/ServerPlaceholders.class'
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    into layout.buildDirectory.dir('generated/embeddedLibraries')
+}
+
+// Loom's development launcher only exposes the standard classes/resources
+// outputs as the active mod. Treat the merged class files as generated
+// resources so they are present both in dev runs and in the remapped jar.
+sourceSets.main.resources.srcDir extractEmbeddedLibraries
+
+def nativeBlockTextures = [
+        makeshift_claim_anchor  : 'makeshift_claim_anchor',
+        reinforced_claim_anchor : 'reinforced_claim_anchor',
+        glistening_claim_anchor : 'glistering_claim_anchor',
+        crystal_claim_anchor    : 'crystal_claim_anchor',
+        emeradic_claim_anchor   : 'emeradic_claim_anchor',
+        withered_claim_anchor   : 'withered_claim_anchor',
+        admin_claim_anchor      : 'admin_claim_anchor',
+        ender_binding           : 'ender_binding',
+        lake_spirit_grace       : 'lake_grace_spirit',
+        angelic_aura            : 'angelic_aura',
+        heaven_wings            : 'heaven_wings',
+        village_core            : 'village_core',
+        withering_seal          : 'withering_seal',
+        chaos_zone              : 'chaos_zone',
+        pvp_arena               : 'pvp_arena',
+        explosion_controller    : 'explosion_controller',
+        force_field             : 'force_field'
+]
+
+def nativeItemModels = [
+        reinforced_upgrade_kit: 'minecraft:item/iron_ingot',
+        glistening_upgrade_kit: 'minecraft:item/gold_ingot',
+        crystal_upgrade_kit   : 'minecraft:item/diamond',
+        emeradic_upgrade_kit  : 'minecraft:item/emerald',
+        withered_upgrade_kit  : 'minecraft:item/nether_star',
+        goggles               : 'minecraft:item/iron_helmet'
+]
+
+def nativeClientResources = tasks.register('generateNativeClientResources') {
+    def outputDirectory = layout.buildDirectory.dir('generated/resources/nativeClient')
+    outputs.dir outputDirectory
+    inputs.files nativeBlockTextures.values().collect { file("../../assets/${it}.png") }
+    inputs.property 'nativeBlockTextures', nativeBlockTextures
+    inputs.property 'nativeItemModels', nativeItemModels
+
+    doLast {
+        def outputRoot = outputDirectory.get().asFile
+
+        nativeBlockTextures.each { blockName, sourceName ->
+            def blockStateFile = new File(outputRoot, "assets/${project.mod_id}/blockstates/${blockName}.json")
+            def blockModelFile = new File(outputRoot, "assets/${project.mod_id}/models/block/${blockName}.json")
+            def itemModelFile = new File(outputRoot, "assets/${project.mod_id}/models/item/${blockName}.json")
+            [blockStateFile, blockModelFile, itemModelFile].each { it.parentFile.mkdirs() }
+            blockStateFile.text = JsonOutput.prettyPrint(JsonOutput.toJson(
+                    [variants: ['': [model: "${project.mod_id}:block/${blockName}"]]]
+            ))
+            blockModelFile.text = JsonOutput.prettyPrint(JsonOutput.toJson(
+                    [parent: 'minecraft:block/cube_all', textures: [all: "${project.mod_id}:block/${blockName}"]]
+            ))
+            itemModelFile.text = JsonOutput.prettyPrint(JsonOutput.toJson(
+                    [parent: "${project.mod_id}:block/${blockName}"]
+            ))
+
+            copy {
+                from file("../../assets/${sourceName}.png")
+                into new File(outputRoot, "assets/${project.mod_id}/textures/block")
+                rename { "${blockName}.png" }
+            }
+        }
+
+        def greeterBlockState = new File(outputRoot, "assets/${project.mod_id}/blockstates/greeter.json")
+        def greeterBlockModel = new File(outputRoot, "assets/${project.mod_id}/models/block/greeter.json")
+        def greeterItemModel = new File(outputRoot, "assets/${project.mod_id}/models/item/greeter.json")
+        [greeterBlockState, greeterBlockModel, greeterItemModel].each { it.parentFile.mkdirs() }
+        greeterBlockState.text = JsonOutput.prettyPrint(JsonOutput.toJson(
+                [variants: ['': [model: "${project.mod_id}:block/greeter"]]]
+        ))
+        greeterBlockModel.text = JsonOutput.prettyPrint(JsonOutput.toJson(
+                [parent: 'minecraft:block/cube_all', textures: [all: 'minecraft:block/emerald_block']]
+        ))
+        greeterItemModel.text = JsonOutput.prettyPrint(JsonOutput.toJson(
+                [parent: "${project.mod_id}:block/greeter"]
+        ))
+
+        nativeItemModels.each { itemName, vanillaModel ->
+            def itemModelFile = new File(outputRoot, "assets/${project.mod_id}/models/item/${itemName}.json")
+            itemModelFile.parentFile.mkdirs()
+            itemModelFile.text = JsonOutput.prettyPrint(JsonOutput.toJson([parent: vanillaModel]))
+        }
+    }
+}
+
+sourceSets.main.resources.srcDir nativeClientResources
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = project.java_version as int
+    options.compilerArgs += ['-Xmaxerrs', '1000']
+}
+
+tasks.named('processResources', ProcessResources).configure {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    exclude 'data/goml/lang/**'
+    from('../../src/main/resources/data/goml/lang') {
+        into 'assets/goml/lang'
+    }
+}
+
+tasks.named('jar', Jar).configure {
+    from '../../LICENSE'
+    manifest {
+        attributes(
+                'Specification-Title': project.mod_id,
+                'Specification-Vendor': project.mod_authors,
+                'Specification-Version': project.mod_version,
+                'Implementation-Title': project.name,
+                'Implementation-Version': project.version,
+                'Implementation-Vendor': project.mod_authors
+        )
+    }
+}
