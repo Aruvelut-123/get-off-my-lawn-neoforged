@@ -122,6 +122,7 @@ dependencies {
 }
 
 def remapMinecraftIntermediary = tasks.register('remapMinecraftIntermediary', RemapJarTask) {
+    dependsOn tasks.named('downloadAssets')
     inputFile.set(layout.file(provider {
         def matches = fileTree("${project.projectDir}/.gradle/loom-cache/minecraftMaven").files.findAll {
             it.name.contains('minecraft-merged') && it.name.endsWith('.jar') && !it.name.endsWith('-sources.jar')
