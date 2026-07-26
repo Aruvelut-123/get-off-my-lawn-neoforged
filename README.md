@@ -10,7 +10,9 @@ This project is a fork of [Get Off My Lawn by Draylar](https://github.com/Drayla
 | Minecraft | NeoForge | Additional dependency |
 | --- | --- | --- |
 | 1.21.1 | **21.1.233** | [Forgified Fabric API](https://www.curseforge.com/minecraft/mc-mods/forgified-fabric-api) `0.116.7+2.2.4+1.21.1` |
-| 26.1.x | Matching 26.1.x NeoForge release (tested with MC 26.1.2 / NeoForge 26.1.2.87) | None |
+| 26.1 | NeoForge 26.1.0.19-beta or newer 26.1 build | None |
+| 26.1.1 | NeoForge 26.1.1.15-beta or newer 26.1.1 build | None |
+| 26.1.2 | NeoForge 26.1.2.87 or newer 26.1.2 build | None |
 
 The 1.21.1 build uses Forgified Fabric API's base compatibility layer and
 Forgified Fabric Loader to retain the PB4-based server UI and placeholder
@@ -140,6 +142,8 @@ Use PowerShell 7 and the included Gradle wrapper. Java 21 is used for the
 
 ```powershell
 ./scripts/build-version.ps1 -Profile 1.21.1
+./scripts/build-version.ps1 -Profile 26.1
+./scripts/build-version.ps1 -Profile 26.1.1
 ./scripts/build-version.ps1 -Profile 26.1.2
 ./scripts/build-all.ps1
 ```
