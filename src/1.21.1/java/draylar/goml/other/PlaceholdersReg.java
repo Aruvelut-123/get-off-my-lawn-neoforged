@@ -16,7 +16,7 @@ import net.minecraft.resources.ResourceLocation;
 @ApiStatus.Internal
 public class PlaceholdersReg {
     public static void init() {
-        Placeholders.register(ResourceLocation.fromNamespaceAndPath("goml", "claim_owners_uuid"), (ctx, arg) -> {
+        Placeholders.register(ResourceLocation.fromNamespaceAndPath("goml", "claim_owners"), (ctx, arg) -> {
             if (!ctx.hasPlayer()) {
                 return PlaceholderResult.invalid("No player!");
             }
@@ -47,7 +47,7 @@ public class PlaceholdersReg {
             }
         });
 
-        Placeholders.register(ResourceLocation.fromNamespaceAndPath("goml", "claim_owners"), (ctx, arg) -> {
+        Placeholders.register(ResourceLocation.fromNamespaceAndPath("goml", "claim_owners_uuid"), (ctx, arg) -> {
             if (!ctx.hasPlayer()) {
                 return PlaceholderResult.invalid("No player!");
             }

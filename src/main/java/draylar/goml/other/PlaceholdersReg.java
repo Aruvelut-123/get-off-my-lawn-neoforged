@@ -53,7 +53,7 @@ public class PlaceholdersReg {
             }
         });
 
-        Placeholders.registerServer(Identifier.fromNamespaceAndPath("goml", "claim_owners"), (ctx, arg) -> {
+        Placeholders.registerServer(Identifier.fromNamespaceAndPath("goml", "claim_owners_uuid"), (ctx, arg) -> {
             if (!ctx.hasPlayer()) {
                 return PlaceholderResult.invalid("No player!");
             }
