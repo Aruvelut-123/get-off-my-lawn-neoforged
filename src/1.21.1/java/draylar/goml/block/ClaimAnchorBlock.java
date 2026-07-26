@@ -3,6 +3,7 @@ package draylar.goml.block;
 import draylar.goml.GetOffMyLawn;
 import draylar.goml.api.Claim;
 import draylar.goml.api.ClaimUtils;
+import draylar.goml.api.HeadTextureProvider;
 import draylar.goml.api.event.ClaimEvents;
 import draylar.goml.block.entity.ClaimAnchorBlockEntity;
 import draylar.goml.item.UpgradeKitItem;
@@ -31,7 +32,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.phys.BlockHitResult;
 
 @SuppressWarnings({"deprecation"})
-public class ClaimAnchorBlock extends Block implements EntityBlock {
+public class ClaimAnchorBlock extends Block implements EntityBlock, HeadTextureProvider {
 
     private final IntSupplier radius;
     private final String texture;
@@ -152,4 +153,8 @@ public class ClaimAnchorBlock extends Block implements EntityBlock {
         return ClaimAnchorBlockEntity::tick;
     }
 
+    @Override
+    public String getHeadTexture() {
+        return this.texture;
+    }
 }

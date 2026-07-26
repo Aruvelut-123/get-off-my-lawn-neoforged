@@ -3,6 +3,7 @@ package draylar.goml.block;
 import draylar.goml.api.Augment;
 import draylar.goml.api.Claim;
 import draylar.goml.api.ClaimUtils;
+import draylar.goml.api.HeadTextureProvider;
 import draylar.goml.block.entity.ClaimAnchorBlockEntity;
 import draylar.goml.block.entity.ClaimAugmentBlockEntity;
 import draylar.goml.registry.GOMLEntities;
@@ -32,7 +33,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
-public class ClaimAugmentBlock extends Block implements Augment, EntityBlock {
+public class ClaimAugmentBlock extends Block implements Augment, EntityBlock, HeadTextureProvider {
 
     private final String texture;
     private BooleanSupplier isEnabled = () -> true;
@@ -200,4 +201,8 @@ public class ClaimAugmentBlock extends Block implements Augment, EntityBlock {
         return ClaimAugmentBlockEntity::tick;
     }
 
+    @Override
+    public String getHeadTexture() {
+        return this.texture;
+    }
 }

@@ -76,7 +76,11 @@ public class PlayerRecord {
     public PlayerRecord(HeadTextureProvider headBlock, @Nullable String displayName) {
         final String DEFAULT_BLOCK_ICON = "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAX0lEQVQImWWMyRGAIBAEG4qvq8EQhEEYhpmYAkHwMARykSMBHyBUYb9mu2ZWXSfHzoTzqOdmWxdsHjpITEUDzQYhSD9NUz/MiP1bEEDPzW9t/qqinSemElPBZmyu2XlexGAiqcN7MbsAAAAASUVORK5CYII=";
         this.name = (displayName != null) ? displayName : this.name;
-        this.playerIcon = new PlayerHeadIcon(getHeadImage(headBlock.getHeadTexture()).orElse(DEFAULT_BLOCK_ICON));
+        this.playerIcon = new PlayerHeadIcon(
+                headBlock == null
+                        ? DEFAULT_BLOCK_ICON
+                        : getHeadImage(headBlock.getHeadTexture()).orElse(DEFAULT_BLOCK_ICON)
+        );
     }
 
     /**
