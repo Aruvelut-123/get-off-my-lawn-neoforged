@@ -1,0 +1,36 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "draylar.goml.mixin",
+  "compatibilityLevel": "JAVA_${java_version}",
+  "plugin": "draylar.goml.mixin.GOMLMixinPlugin",
+  "mixins": [
+    "BlockItemMixin",
+    "BucketItemMixin",
+    "DispenserBlockMixin",
+    "EntityMixin",
+    "ExplosionMixin",
+    "FallingBlockEntityMixin",
+    "FarmlandBlockMixin",
+    "FireBlockMixin",
+    "FlowableFluidMixin",
+    "PistonBlockMixin",
+    "PistonHandlerMixin",
+    "PlayerEntityMixin",
+    "ProjectileEntityMixin",
+    "ServerPlayerEntityMixin",
+    "ServerScoreboardMixin",
+    "ServerWorldMixin",
+    "ShapedRecipeMixin",
+    "SmallFireballEntityMixin",
+    "TntEntityMixin",
+    "augment.EndermanEntityMixin",
+    "augment.EndermanEntityMixin${'$'}PickBlockGoalMixin",
+    "augment.EndermanEntityMixin${'$'}PlaceBlockGoalMixin",
+    "augment.VillagerEntityMixin",
+    "compat.DynmapClientMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}

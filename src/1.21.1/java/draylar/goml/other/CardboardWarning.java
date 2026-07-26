@@ -1,0 +1,47 @@
+package draylar.goml.other;
+
+import net.neoforged.fml.ModList;
+import org.apache.logging.log4j.Logger;
+
+import java.util.List;
+
+public class CardboardWarning {
+    private static final Logger LOGGER = draylar.goml.GetOffMyLawn.LOGGER;
+    public static final String MOD_NAME = "Get Off My Lawn Reserved";
+
+    // Overwrite heavy and generally problematic bukkit implementation
+    private static final List<String> BROKEN_BUKKIT_IMPL = List.of("cardboard", "banner", "arclight");
+
+    public static final String BUKKIT_NAME;
+    public static final boolean LOADED;
+
+    static {
+        var name = "";
+        var loaded = false;
+        for (var x : BROKEN_BUKKIT_IMPL) {
+            var m = ModList.get().getModContainerById(x);
+            if (m.isPresent()) {
+                name = m.get().getModInfo().getDisplayName() + " (" + x + ")";
+                loaded = true;
+                break;
+            }
+        }
+
+        BUKKIT_NAME = name;
+        LOADED = loaded;
+    }
+
+    public static void checkAndAnnounce() {
+        if (LOADED) {
+            LOGGER.error("==============================================");
+            LOGGER.error("");
+            LOGGER.error(BUKKIT_NAME + " detected! This mod is known to cause issues!");
+            LOGGER.error(MOD_NAME + " might not work correctly because of it.");
+            LOGGER.error("You won't get any support as long as it's present!");
+            LOGGER.error("");
+            LOGGER.error("Read more at: https://gist.github.com/Patbox/e44844294c358b614d347d369b0fc3bf");
+            LOGGER.error("");
+            LOGGER.error("==============================================");
+        }
+    }
+}
