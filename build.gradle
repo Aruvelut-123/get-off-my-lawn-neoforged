@@ -17,7 +17,12 @@ base {
     archivesName = project.archives_base_name
 }
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(25)
+java.toolchain.languageVersion = JavaLanguageVersion.of(project.java_version as int)
+
+def versionSourceDirectory = project.source_line == 'main'
+        ? 'src/main/java'
+        : "src/${project.source_line}/java"
+sourceSets.main.java.setSrcDirs([versionSourceDirectory])
 
 repositories {
     mavenCentral()
@@ -25,6 +30,7 @@ repositories {
     maven { url = 'https://maven.jamieswhiteshirt.com/libs-release/' }
     maven { url = 'https://repo.bluecolored.de/releases' }
     maven { url = 'https://repo.mikeprimm.com/' }
+    maven { url = 'https://maven.su5ed.dev/releases' }
 }
 
 neoForge {
@@ -77,6 +83,10 @@ configurations {
 }
 
 dependencies {
+    if (project.findProperty('ffapi_version')) {
+        implementation "org.sinytra.forgified-fabric-api:forgified-fabric-api:${project.ffapi_version}"
+    }
+
     embeddedLibraries(group: 'com.jamieswhiteshirt', name: 'rtree-3i-lite-fabric', version: project.rtree_version) {
         transitive = false
     }
@@ -103,6 +113,7 @@ def generateModMetadata = tasks.register('generateModMetadata', ProcessResources
             minecraft_version_range: project.minecraft_version_range,
             neo_version_range      : project.neo_version_range,
             loader_version_range   : project.loader_version_range,
+            java_version           : project.java_version,
             mod_id                 : project.mod_id,
             mod_name               : project.mod_name,
             mod_license            : project.mod_license,

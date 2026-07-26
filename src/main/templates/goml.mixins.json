@@ -2,7 +2,7 @@
   "required": true,
   "minVersion": "0.8",
   "package": "draylar.goml.mixin",
-  "compatibilityLevel": "JAVA_25",
+  "compatibilityLevel": "JAVA_${java_version}",
   "plugin": "draylar.goml.mixin.GOMLMixinPlugin",
   "mixins": [
     "BlockItemMixin",
@@ -26,8 +26,8 @@
     "ShapedRecipeMixin",
     "SmallFireballMixin",
     "augment.EnderManMixin",
-    "augment.EnderManMixin$EndermanLeaveBlockGoalMixin",
-    "augment.EnderManMixin$EndermanTakeBlockGoalMixin",
+    "augment.EnderManMixin${'$'}EndermanLeaveBlockGoalMixin",
+    "augment.EnderManMixin${'$'}EndermanTakeBlockGoalMixin",
     "augment.VillagerMixin",
     "compat.DynmapClientMixin",
     "datafix.MixinDimensionStorageFileFix"
