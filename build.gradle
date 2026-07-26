@@ -76,7 +76,7 @@ configurations {
 dependencies {
     jarJar(implementation(group: 'com.jamieswhiteshirt', name: 'rtree-3i-lite-fabric')) {
         version {
-            strictly "[${project.rtree_version},${project.rtree_version}]"
+            strictly "[${project.rtree_version},0.4.0)"
             prefer project.rtree_version
         }
     }
@@ -85,19 +85,19 @@ dependencies {
     // vanilla server primitives. Bundle them so modpacks do not need Fabric jars.
     jarJar(implementation(group: 'eu.pb4', name: 'sgui')) {
         version {
-            strictly "[${project.sgui_version},${project.sgui_version}]"
+            strictly "[${project.sgui_version},3.0.0)"
             prefer project.sgui_version
         }
     }
     jarJar(implementation(group: 'eu.pb4', name: 'placeholder-api')) {
         version {
-            strictly "[${project.placeholder_version},${project.placeholder_version}]"
+            strictly "[${project.placeholder_version},4.0.0)"
             prefer project.placeholder_version
         }
     }
     jarJar(implementation(group: 'eu.pb4', name: 'common-protection-api')) {
         version {
-            strictly "[${project.common_protection_api_version},${project.common_protection_api_version}]"
+            strictly "[${project.common_protection_api_version},3.0.0)"
             prefer project.common_protection_api_version
         }
     }
