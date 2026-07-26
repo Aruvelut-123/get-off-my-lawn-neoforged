@@ -123,39 +123,7 @@ dependencies {
 
 def remapMinecraftIntermediary = tasks.register('remapMinecraftIntermediary', RemapJarTask) {
     dependsOn tasks.named('downloadAssets')
-    inputFile.set(layout.file(provider {
-        def cacheDir = file("${project.projectDir}/.gradle/loom-cache/minecraftMaven")
-        
-        // 【新增调试日志】打印当前正在扫描的绝对路径
-        println "==================== LOOM CACHE DEBUG ===================="
-        println "Scanning Loom cache at: ${cacheDir.absolutePath}"
-        println "Directory exists: ${cacheDir.exists()}"
-        
-        // 如果目录存在，列出里面的所有文件
-        if (cacheDir.exists()) {
-            println "Files in directory:"
-            cacheDir.listFiles()?.each { println "  -> ${it.name}" }
-        } else {
-            println "Directory does not exist! Trying to find loom-cache globally..."
-            // 尝试在整个 .gradle 目录下搜索
-            def globalCache = file("${project.projectDir}/.gradle")
-            if (globalCache.exists()) {
-                def foundFiles = globalCache.listFiles()?.findAll { it.name.contains('minecraft-merged') }
-                println "Global .gradle files matching 'minecraft-merged': ${foundFiles?.collect { it.absolutePath }}"
-            }
-        }
-        println "=========================================================="
-
-        // 原有的查找逻辑
-        def matches = fileTree(cacheDir).files.findAll {
-            it.name.contains('minecraft-merged') && it.name.endsWith('.jar') && !it.name.endsWith('-sources.jar')
-        }
-        
-        if (matches.size() != 1) {
-            throw new GradleException("Expected one named Minecraft jar, found ${matches.size()}. Matches: ${matches*.name}")
-        }
-        matches.first()
-    }))
+    inputFile.set(loom.minecraftMergedProvider)
     archiveFileName.set("minecraft-${project.minecraft_version}-intermediary.jar")
     destinationDirectory.set(layout.buildDirectory.dir('intermediaryClasspath'))
     sourceNamespace.set('named')
