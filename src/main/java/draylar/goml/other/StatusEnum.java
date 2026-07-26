@@ -5,7 +5,6 @@ import org.jetbrains.annotations.ApiStatus;
 import java.util.Locale;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Items;
 
 @ApiStatus.Internal
 public interface StatusEnum<T> {
@@ -22,10 +21,10 @@ public interface StatusEnum<T> {
 
         public Item getIcon() {
             return switch (this) {
-                case EVERYONE -> Items.WOOL.green();
-                case TRUSTED -> Items.WOOL.yellow();
-                case UNTRUSTED -> Items.WOOL.red();
-                case DISABLED -> Items.WOOL.gray();
+                case EVERYONE -> VanillaItems.get("green_wool");
+                case TRUSTED -> VanillaItems.get("yellow_wool");
+                case UNTRUSTED -> VanillaItems.get("red_wool");
+                case DISABLED -> VanillaItems.get("gray_wool");
             };
         }
 
@@ -58,8 +57,8 @@ public interface StatusEnum<T> {
 
         public Item getIcon() {
             return switch (this) {
-                case ENABLED -> Items.WOOL.green();
-                case DISABLED -> Items.WOOL.gray();
+                case ENABLED -> VanillaItems.get("green_wool");
+                case DISABLED -> VanillaItems.get("gray_wool");
             };
         }
 

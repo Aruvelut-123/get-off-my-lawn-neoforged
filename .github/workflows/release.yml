@@ -9,6 +9,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        minecraft: ['26.1.2', '26.2']
 
     steps:
       - uses: actions/cache@v4
@@ -29,15 +32,9 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build and publish with Gradle
-        run: ./gradlew build publish
-        env:
-          MAVEN_URL: ${{ secrets.MAVEN_URL }}
-          MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
-          CURSEFORGE: ${{ secrets.CURSEFORGE }}
-          MODRINTH: ${{ secrets.MODRINTH }}
-          CHANGELOG: ${{ github.event.release.body }}
+      - name: Build release artifact
+        shell: pwsh
+        run: ./scripts/build-version.ps1 -Profile '${{ matrix.minecraft }}'
       - name: Upload GitHub release
         uses: AButler/upload-release-assets@v3.0
         with:

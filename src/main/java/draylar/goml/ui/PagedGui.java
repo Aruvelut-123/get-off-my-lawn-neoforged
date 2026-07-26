@@ -1,6 +1,7 @@
 package draylar.goml.ui;
 
 import draylar.goml.registry.GOMLTextures;
+import draylar.goml.other.VanillaItems;
 import eu.pb4.sgui.api.elements.GuiElement;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.elements.GuiElementBuilderCreator;
@@ -125,7 +126,7 @@ public abstract class PagedGui extends SimpleGui {
     public record DisplayElement(@Nullable Supplier<GuiElement> elementSupplier, @Nullable Slot slot) {
         private static final DisplayElement EMPTY = DisplayElement.of(new SimpleGuiElement(ItemStack.EMPTY, GuiElement.EMPTY_CALLBACK));
         private static final DisplayElement FILLER = DisplayElement.of(
-                new GuiElementBuilder(Items.STAINED_GLASS_PANE.white())
+                new GuiElementBuilder(VanillaItems.get("white_stained_glass_pane"))
                         .setName(Component.empty())
                         .hideTooltip()
         );

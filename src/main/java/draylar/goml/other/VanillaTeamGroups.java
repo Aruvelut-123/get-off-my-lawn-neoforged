@@ -14,7 +14,6 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.scores.PlayerTeam;
-import net.minecraft.world.scores.TeamColor;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -32,6 +31,27 @@ public class VanillaTeamGroups {
                 claim.untrust(value);
             }
         }
+    }
+
+    private static int colorRgb(Object color) {
+        for (String methodName : List.of("rgb", "getColor")) {
+            try {
+                Object result = color.getClass().getMethod(methodName).invoke(color);
+                if (result instanceof Integer rgb) {
+                    return rgb;
+                }
+            } catch (ReflectiveOperationException ignored) {
+                // Try the method used by the other supported Minecraft line.
+            }
+        }
+        return 0xFFFFFF;
+    }
+
+    private static int resolveTeamColor(Object color) {
+        if (color instanceof Optional<?> optional) {
+            return optional.map(VanillaTeamGroups::colorRgb).orElse(0xFFFFFF);
+        }
+        return colorRgb(color);
     }
 
     private record TeamProvider() implements PlayerGroupProvider {
@@ -109,7 +129,7 @@ public class VanillaTeamGroups {
         @Override
         public ItemStack icon() {
             var stack = new ItemStack(Items.LEATHER_HELMET);
-            var i = this.team.getColor().map(TeamColor::rgb).orElse(0xFFFFFF);
+            var i = resolveTeamColor(this.team.getColor());
             stack.set(DataComponents.DYED_COLOR, new DyedItemColor(i));
             stack.set(DataComponents.TOOLTIP_DISPLAY, TooltipDisplay.DEFAULT.withHidden(DataComponents.DYED_COLOR, false));
             return stack;

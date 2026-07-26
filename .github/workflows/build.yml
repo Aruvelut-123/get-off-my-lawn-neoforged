@@ -10,11 +10,8 @@ jobs:
   build:
     strategy:
       matrix:
-        # Use these Java versions
-        java: [
-          25    # Latest version
-        ]
-        # and run on both Linux and Windows
+        java: [25]
+        minecraft: ['26.1.2', '26.2']
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
@@ -28,9 +25,10 @@ jobs:
         if: ${{ runner.os != 'Windows' }}
         run: chmod +x ./gradlew
       - name: build
-        run: ./gradlew build
+        shell: pwsh
+        run: ./scripts/build-version.ps1 -Profile '${{ matrix.minecraft }}'
       - name: capture build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Artifacts
+          name: GOML-${{ matrix.minecraft }}-NeoForge
           path: build/libs/

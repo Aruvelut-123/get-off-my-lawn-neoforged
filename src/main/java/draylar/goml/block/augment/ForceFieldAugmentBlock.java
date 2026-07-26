@@ -7,6 +7,7 @@ import draylar.goml.api.Claim;
 import draylar.goml.api.ClaimUtils;
 import draylar.goml.api.DataKey;
 import draylar.goml.block.ClaimAugmentBlock;
+import draylar.goml.other.VanillaItems;
 import draylar.goml.registry.GOMLTextures;
 import draylar.goml.ui.GenericPlayerListGui;
 import draylar.goml.ui.GenericPlayerSelectionGui;
@@ -168,7 +169,7 @@ public class ForceFieldAugmentBlock extends ClaimAugmentBlock {
             var change = new MutableObject<Runnable>();
             change.setValue(() -> {
                 var currentMode = claim.getData(WHITELIST_KEY).booleanValue();
-                gui.setSlot(0, new GuiElementBuilder(currentMode ? Items.WOOL.white() : Items.WOOL.black())
+                gui.setSlot(0, new GuiElementBuilder(currentMode ? VanillaItems.get("white_wool") : VanillaItems.get("black_wool"))
                         .setName(Component.translatable("text.goml.gui.force_field.whitelist_mode", CommonComponents.optionStatus(currentMode)))
                         .addLoreLine(Component.translatable("text.goml.mode_toggle.help").withStyle(ChatFormatting.GRAY))
                         .setCallback(() -> {
