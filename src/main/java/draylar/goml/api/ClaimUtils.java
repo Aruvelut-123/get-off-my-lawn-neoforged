@@ -9,7 +9,7 @@ import draylar.goml.GetOffMyLawn;
 import draylar.goml.api.event.ClaimEvents;
 import draylar.goml.block.augment.ExplosionControllerAugmentBlock;
 import draylar.goml.block.entity.ClaimAnchorBlockEntity;
-import draylar.goml.other.FabricPermissionBridge;
+import draylar.goml.other.PermissionBridge;
 import draylar.goml.other.GomlPlayer;
 import draylar.goml.other.OriginOwner;
 import draylar.goml.other.StatusEnum;
@@ -186,7 +186,7 @@ public class ClaimUtils {
     }
 
     public static boolean isInAdminMode(Player player) {
-        return FabricPermissionBridge.checkPermission(player, id("modify_others"), PermissionLevel.ADMINS) && (player instanceof GomlPlayer adminModePlayer && adminModePlayer.goml_getAdminMode());
+        return PermissionBridge.checkPermission(player, id("modify_others"), PermissionLevel.ADMINS) && (player instanceof GomlPlayer adminModePlayer && adminModePlayer.goml_getAdminMode());
     }
 
     public static boolean canFireDestroy(Level world, BlockPos pos) {

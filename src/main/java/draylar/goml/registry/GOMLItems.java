@@ -7,14 +7,16 @@ import draylar.goml.item.UpgradeKitItem;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
-import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 public class GOMLItems {
+    private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(BuiltInRegistries.ITEM, GetOffMyLawn.MOD_ID);
     public static List<Item> BASE_ITEMS = new ArrayList<>();
 
     public static final Item REINFORCED_UPGRADE_KIT = registerUpgradeKit("reinforced_upgrade_kit", GOMLBlocks.MAKESHIFT_CLAIM_ANCHOR.getFirst(), GOMLBlocks.REINFORCED_CLAIM_ANCHOR.getFirst(), Items.IRON_INGOT);
@@ -33,11 +35,12 @@ public class GOMLItems {
         var id = GetOffMyLawn.id(name);
         var value = item.apply(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, id)));
         BASE_ITEMS.add(value);
-        return Registry.register(BuiltInRegistries.ITEM, id, value);
+        ITEMS.register(name, () -> value);
+        return value;
     }
 
-    public static void init() {
-        // NO-OP
+    public static void register(IEventBus eventBus) {
+        ITEMS.register(eventBus);
     }
 
     private GOMLItems() {

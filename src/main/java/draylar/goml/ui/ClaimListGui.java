@@ -5,7 +5,7 @@ import com.mojang.authlib.GameProfile;
 import draylar.goml.api.Claim;
 import draylar.goml.api.ClaimBox;
 import draylar.goml.api.ClaimUtils;
-import draylar.goml.other.FabricPermissionBridge;
+import draylar.goml.other.PermissionBridge;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.Registries;
@@ -61,7 +61,7 @@ public class ClaimListGui extends PagedGui {
             icon.setLore(lore);
 
             icon.setCallback(() -> {
-                if (FabricPermissionBridge.checkPermission(this.player, id("teleport"), PermissionLevel.ADMINS)) {
+                if (PermissionBridge.checkPermission(this.player, id("teleport"), PermissionLevel.ADMINS)) {
                     var world = server.getLevel(ResourceKey.create(Registries.DIMENSION, claim.getWorld()));
                     if (world != null) {
                         this.player.teleportTo(world, claim.getOrigin().getX(), claim.getOrigin().getY() + 1, claim.getOrigin().getZ(), Set.of(), this.player.getYRot(), this.player.getXRot(), false);

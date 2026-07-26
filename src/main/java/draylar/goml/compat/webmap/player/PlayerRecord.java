@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import draylar.goml.GetOffMyLawn;
-import eu.pb4.polymer.core.api.block.PolymerHeadBlock;
+import draylar.goml.api.HeadTextureProvider;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import org.jetbrains.annotations.Nullable;
@@ -68,15 +68,15 @@ public class PlayerRecord {
         }
     }
     /**
-     * Gets icon for {@link PolymerHeadBlock} and sets display name.
+     * Gets an icon from the block's legacy head texture and sets display name.
      * 
      * @param headBlock the polymer head block
      * @param displayName the display name, or null for placeholder
      */
-    public PlayerRecord(PolymerHeadBlock headBlock, @Nullable String displayName) {
+    public PlayerRecord(HeadTextureProvider headBlock, @Nullable String displayName) {
         final String DEFAULT_BLOCK_ICON = "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAX0lEQVQImWWMyRGAIBAEG4qvq8EQhEEYhpmYAkHwMARykSMBHyBUYb9mu2ZWXSfHzoTzqOdmWxdsHjpITEUDzQYhSD9NUz/MiP1bEEDPzW9t/qqinSemElPBZmyu2XlexGAiqcN7MbsAAAAASUVORK5CYII=";
         this.name = (displayName != null) ? displayName : this.name;
-        this.playerIcon = new PlayerHeadIcon(getHeadImage(headBlock.getPolymerSkinValue(null, null, null)).orElse(DEFAULT_BLOCK_ICON));
+        this.playerIcon = new PlayerHeadIcon(getHeadImage(headBlock.getHeadTexture()).orElse(DEFAULT_BLOCK_ICON));
     }
 
     /**
@@ -93,7 +93,7 @@ public class PlayerRecord {
     }
     
     /**
-     * Resolves the player's name and icon using Minecraft API. Has no effect if not constructed with player UUID (i.e with PolymerHeadBlock).
+     * Resolves the player's name and icon using Minecraft API. Has no effect if not constructed with player UUID.
      */
     public void resolvePlayer() {
         if(this.uuid != null) {

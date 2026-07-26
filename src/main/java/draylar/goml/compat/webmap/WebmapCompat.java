@@ -15,7 +15,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Nullable;
-import net.fabricmc.loader.api.FabricLoader;
+import net.neoforged.fml.ModList;
 
 public abstract class WebmapCompat {
     public static final String MARKER_SET_ID = "gomlMarkerSet";
@@ -51,10 +51,10 @@ public abstract class WebmapCompat {
 
         INTEGRATIONS.clear();
 
-        if (FabricLoader.getInstance().isModLoaded("bluemap")) {
+        if (ModList.get().isLoaded("bluemap")) {
             registerIntegration(BluemapCompat.getInstance());
         }
-        if (FabricLoader.getInstance().isModLoaded("dynmap")) {
+        if (ModList.get().isLoaded("dynmap")) {
             registerIntegration(DynmapCompat.getInstance());
         }
 

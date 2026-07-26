@@ -1,6 +1,6 @@
 package draylar.goml.mixin;
 
-import net.fabricmc.loader.api.FabricLoader;
+import net.neoforged.fml.ModList;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
@@ -10,9 +10,9 @@ import java.util.Set;
 
 public class GOMLMixinPlugin implements IMixinConfigPlugin {
 
-    public static final boolean BLAST_LOADED = FabricLoader.getInstance().isModLoaded("blast");
-    public static final boolean AE2_LOADED = FabricLoader.getInstance().isModLoaded("appliedenergistics2");
-    public static final boolean BOTANIA_LOADED = FabricLoader.getInstance().isModLoaded("botania");
+    public static final boolean BLAST_LOADED = ModList.get().isLoaded("blast");
+    public static final boolean AE2_LOADED = ModList.get().isLoaded("appliedenergistics2");
+    public static final boolean BOTANIA_LOADED = ModList.get().isLoaded("botania");
 
     @Override
     public void onLoad(String mixinPackage) {

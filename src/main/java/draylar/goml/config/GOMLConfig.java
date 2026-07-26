@@ -6,7 +6,7 @@ import com.jamieswhiteshirt.rtree3i.Box;
 import draylar.goml.GetOffMyLawn;
 import draylar.goml.other.WrappedText;
 import draylar.goml.registry.GOMLBlocks;
-import net.fabricmc.loader.api.FabricLoader;
+import net.neoforged.fml.loading.FMLPaths;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
@@ -100,7 +100,7 @@ public class GOMLConfig {
     public static GOMLConfig loadOrCreateConfig() {
         try {
             GOMLConfig config;
-            File configFile = new File(FabricLoader.getInstance().getConfigDir().toFile(), "getoffmylawn.json");
+            File configFile = new File(FMLPaths.CONFIGDIR.get().toFile(), "getoffmylawn.json");
 
             if (configFile.exists()) {
                 String json = IOUtils.toString(new InputStreamReader(new FileInputStream(configFile), StandardCharsets.UTF_8));
@@ -127,7 +127,7 @@ public class GOMLConfig {
     }
 
     public static void saveConfig(GOMLConfig config) {
-        File configFile = new File(FabricLoader.getInstance().getConfigDir().toFile(), "getoffmylawn.json");
+        File configFile = new File(FMLPaths.CONFIGDIR.get().toFile(), "getoffmylawn.json");
         try {
             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(configFile), StandardCharsets.UTF_8));
             writer.write(BaseGson.GSON.toJson(config));

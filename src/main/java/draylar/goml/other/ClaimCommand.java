@@ -17,7 +17,6 @@ import draylar.goml.api.event.ClaimEvents;
 import draylar.goml.config.GOMLConfig;
 import draylar.goml.registry.GOMLEntities;
 import draylar.goml.ui.ClaimListGui;
-import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -38,6 +37,8 @@ import net.minecraft.server.permissions.PermissionLevel;
 import net.minecraft.world.entity.Relative;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.ArrayList;
@@ -59,85 +60,87 @@ public class ClaimCommand {
         // NO-OP
     }
 
-    public static void init() {
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+    public static void register() {
+        NeoForge.EVENT_BUS.addListener(ClaimCommand::registerCommands);
+    }
 
-            dispatcher.register(literal("goml")
+    private static void registerCommands(RegisterCommandsEvent event) {
+            event.getDispatcher().register(literal("goml")
                     .then(literal("help")
-                            .requires(FabricPermissionBridge.require(id("command/help"), true))
+                            .requires(PermissionBridge.require(id("command/help"), true))
                             .executes(ClaimCommand::help)
                     )
                     .then(literal("trust")
-                            .requires(FabricPermissionBridge.require(id("command/trust"), true))
+                            .requires(PermissionBridge.require(id("command/trust"), true))
                             .then(Commands.argument("player", GameProfileArgument.gameProfile())
                                     .executes(context -> trust(context, false))
                             )
                     )
                     .then(literal("untrust")
-                            .requires(FabricPermissionBridge.require(id("command/untrust"), true))
+                            .requires(PermissionBridge.require(id("command/untrust"), true))
                             .then(Commands.argument("player", GameProfileArgument.gameProfile())
                                     .executes((ctx) -> ClaimCommand.untrust(ctx, false)))
                     )
                     .then(literal("addowner")
-                            .requires(FabricPermissionBridge.require(id("command/addowner"), true))
+                            .requires(PermissionBridge.require(id("command/addowner"), true))
                             .then(Commands.argument("player", GameProfileArgument.gameProfile())
                                     .executes(context -> trust(context, true)))
                     )
 
                     .then(literal("list")
-                            .requires(FabricPermissionBridge.require(id("command/list"), true))
+                            .requires(PermissionBridge.require(id("command/list"), true))
                             .executes(context -> openList(context, context.getSource().getPlayer().getGameProfile()))
                     )
 
                     .then(literal("escape")
-                            .requires(FabricPermissionBridge.require(id("command/escape"), true))
+                            .requires(PermissionBridge.require(id("command/escape"), true))
                             .executes(context -> escape(context, context.getSource().getPlayerOrException()))
                     )
 
                     .then(literal("admin")
-                            .requires(FabricPermissionBridge.require(id("command/admin"), PermissionLevel.ADMINS))
+                            .requires(PermissionBridge.require(id("command/admin"), PermissionLevel.ADMINS))
                             .then(literal("fixaugments")
-                                    .requires(FabricPermissionBridge.require(id("command/fixaugments"), true))
+                                    .requires(PermissionBridge.require(id("command/fixaugments"), true))
                                     .executes(ClaimCommand::fixAugments)
                             )
                             .then(literal("escape")
-                                    .requires(FabricPermissionBridge.require(id("command/admin/escape"), true))
+                                    .requires(PermissionBridge.require(id("command/admin/escape"), true))
                                     .then(argument("player", EntityArgument.player())
                                             .executes(context -> escape(context, EntityArgument.getPlayer(context, "player")))
                                     )
                             )
 
                             .then(literal("adminmode")
-                                    .requires(FabricPermissionBridge.require(id("command/admin/admin_mode"), PermissionLevel.ADMINS))
+                                    .requires(PermissionBridge.require(id("command/admin/admin_mode"), PermissionLevel.ADMINS))
                                     .executes(ClaimCommand::adminMode)
                             )
                             .then(literal("removeowner")
-                                    .requires(FabricPermissionBridge.require(id("command/admin/removeowner"), true))
+                                    .requires(PermissionBridge.require(id("command/admin/removeowner"), true))
                                     .then(Commands.argument("player", GameProfileArgument.gameProfile())
                                             .executes((ctx) -> ClaimCommand.untrust(ctx, true)))
                             )
                             .then(literal("info")
-                                    .requires(FabricPermissionBridge.require(id("command/admin/info"), PermissionLevel.ADMINS))
+                                    .requires(PermissionBridge.require(id("command/admin/info"), PermissionLevel.ADMINS))
                                     .executes(ClaimCommand::infoAdmin)
                             )
                             .then(literal("world")
-                                    .requires(FabricPermissionBridge.require(id("command/admin/world"), PermissionLevel.ADMINS))
+                                    .requires(PermissionBridge.require(id("command/admin/world"), PermissionLevel.ADMINS))
                                     .executes(ClaimCommand::world)
                             )
                             .then(literal("general")
-                                    .requires(FabricPermissionBridge.require(id("command/admin/general"), PermissionLevel.ADMINS))
+                                    .requires(PermissionBridge.require(id("command/admin/general"), PermissionLevel.ADMINS))
                                     .executes(ClaimCommand::general)
                             )
                             .then(literal("remove")
-                                    .requires(FabricPermissionBridge.require(id("command/admin/remove"), PermissionLevel.ADMINS))
+                                    .requires(PermissionBridge.require(id("command/admin/remove"), PermissionLevel.ADMINS))
                                     .executes(ClaimCommand::remove)
                             )
                             .then(literal("reload")
-                                    .requires(FabricPermissionBridge.require(id("command/admin/reload"), PermissionLevel.OWNERS))
+                                    .requires(PermissionBridge.require(id("command/admin/reload"), PermissionLevel.OWNERS))
                                     .executes(ClaimCommand::reload)
                             )
                             .then(literal("list")
-                                    .requires(FabricPermissionBridge.require(id("command/list"), true))
+                                    .requires(PermissionBridge.require(id("command/list"), true))
                                     .then(Commands.argument("player", GameProfileArgument.gameProfile())
                                             .executes(context -> {
                                                 var player = GameProfileArgument.getGameProfiles(context, "player").toArray(new GameProfile[0]);
@@ -151,12 +154,11 @@ public class ClaimCommand {
                                     )
                             )
                             .then(literal("updateallclaims")
-                                    .requires(FabricPermissionBridge.require(id("command/admin/updateallclaims"), PermissionLevel.OWNERS))
+                                    .requires(PermissionBridge.require(id("command/admin/updateallclaims"), PermissionLevel.OWNERS))
                                     .executes(ClaimCommand::updateAllClaims)
                             )
                     )
             );
-        });
     }
 
     private static int fixAugments(CommandContext<CommandSourceStack> context) {

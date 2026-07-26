@@ -8,9 +8,10 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.neoforged.neoforge.common.util.ValueIOSerializable;
 import org.jetbrains.annotations.Nullable;
 
-public class WorldClaimComponent implements ClaimComponent {
+public class WorldClaimComponent implements ClaimComponent, ValueIOSerializable {
 
     private RTreeMap<ClaimBox, Claim> claims = RTreeMap.create(new ConfigurationBuilder().star().build(), ClaimBox::toBox);
     private final Level world;
@@ -35,7 +36,7 @@ public class WorldClaimComponent implements ClaimComponent {
     }
 
     @Override
-    public void readData(ValueInput view) {
+    public void deserialize(ValueInput view) {
         this.claims = RTreeMap.create(new ConfigurationBuilder().star().build(), ClaimBox::rtree3iBox);
         var world = this.world.dimension().identifier();
 
@@ -70,7 +71,7 @@ public class WorldClaimComponent implements ClaimComponent {
     }
 
     @Override
-    public void writeData(ValueOutput view) {
+    public void serialize(ValueOutput view) {
         var nbtListClaims = view.childrenList("Claims");
         view.putInt("Version", 1);
         claims.values().forEach(claim -> claim.writeData(nbtListClaims.addChild()));

@@ -4,7 +4,7 @@ import draylar.goml.api.Claim;
 import draylar.goml.compat.webmap.player.PlayerRecord;
 import draylar.goml.api.ClaimBox;
 import draylar.goml.api.ClaimUtils;
-import eu.pb4.polymer.core.api.block.PolymerHeadBlock;
+import draylar.goml.api.HeadTextureProvider;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -102,7 +102,7 @@ public final class ClaimMarker {
 			)
 		);
 		this.claimAnchorType = new PlayerRecord(
-			claim.getType() instanceof PolymerHeadBlock polymerHeadBlock ? polymerHeadBlock : null,
+			claim.getType() instanceof HeadTextureProvider textureProvider ? textureProvider : null,
 			claim.getType().getName().getString()
 		);
 
@@ -120,7 +120,7 @@ public final class ClaimMarker {
 			? claim.getAugments().values().stream()
 				.sorted(Comparator.comparing(augment -> augment.getAugmentName().getString().toLowerCase(Locale.ROOT)))
 				.map(augment -> new PlayerRecord(
-					augment instanceof PolymerHeadBlock headBlock ? headBlock : null,
+					augment instanceof HeadTextureProvider textureProvider ? textureProvider : null,
 					augment.getAugmentName().getString()
 				))
 				.collect(Collectors.toList())

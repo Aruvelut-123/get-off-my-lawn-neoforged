@@ -8,21 +8,24 @@ import draylar.goml.block.SelectiveClaimAugmentBlock;
 import draylar.goml.block.augment.*;
 import draylar.goml.item.ClaimAnchorBlockItem;
 import draylar.goml.item.ToggleableBlockItem;
-import eu.pb4.polymer.core.api.block.PolymerHeadBlock;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.IntSupplier;
-import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 public class GOMLBlocks {
+    private static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(BuiltInRegistries.BLOCK, GetOffMyLawn.MOD_ID);
+    private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(BuiltInRegistries.ITEM, GetOffMyLawn.MOD_ID);
+
     public static final List<ClaimAnchorBlock> ANCHORS = new ArrayList<>();
     public static final List<ClaimAugmentBlock> AUGMENTS = new ArrayList<>();
 
@@ -37,7 +40,7 @@ public class GOMLBlocks {
     public static final Pair<ClaimAugmentBlock, Item> ENDER_BINDING = register("ender_binding", (s) -> new EnderBindingAugmentBlock(s.destroyTime(10).explosionResistance(3600000.0F), GOMLTextures.ENDER_BINDING), 2);
     public static final Pair<ClaimAugmentBlock, Item> LAKE_SPIRIT_GRACE = register("lake_spirit_grace",(s) ->  new LakeSpiritGraceAugmentBlock(s.destroyTime(10).explosionResistance(3600000.0F), GOMLTextures.LAKE_SPIRIT_GRACE), 2);
     public static final Pair<ClaimAugmentBlock, Item> ANGELIC_AURA = register("angelic_aura", (s) -> new AngelicAuraAugmentBlock(s.destroyTime(10).explosionResistance(3600000.0F), GOMLTextures.ANGELIC_AURA), 2);
-    public static final Pair<ClaimAugmentBlock, Item> HEAVEN_WINGS = register("heaven_wings", (s) -> new HeavenWingsAugmentBlock(s.destroyTime(10).explosionResistance(3600000.0F), GOMLTextures.HEAVEN_WINGS), 2);
+    public static final Pair<HeavenWingsAugmentBlock, Item> HEAVEN_WINGS = register("heaven_wings", (s) -> new HeavenWingsAugmentBlock(s.destroyTime(10).explosionResistance(3600000.0F), GOMLTextures.HEAVEN_WINGS), 2);
     public static final Pair<ClaimAugmentBlock, Item> VILLAGE_CORE = register("village_core",(s) ->  new ClaimAugmentBlock(s.destroyTime(10).explosionResistance(3600000.0F), GOMLTextures.VILLAGE_CORE), 2);
     public static final Pair<ClaimAugmentBlock, Item> WITHERING_SEAL = register("withering_seal", (s) -> new WitheringSealAugmentBlock(s.destroyTime(10).explosionResistance(3600000.0F), GOMLTextures.WITHERING_SEAL), 2);
     public static final Pair<ClaimAugmentBlock, Item> CHAOS_ZONE = register("chaos_zone", (s) -> new ChaosZoneAugmentBlock(s.destroyTime(10).explosionResistance(3600000.0F), GOMLTextures.CHAOS_ZONE), 2);
@@ -49,15 +52,16 @@ public class GOMLBlocks {
 
     private static Pair<ClaimAnchorBlock, Item> register(String name, IntSupplier radius, float hardness, String texture) {
         var id = GetOffMyLawn.id(name);
-        var claimAnchorBlock = Registry.register(
-                    BuiltInRegistries.BLOCK,
-                    id,
-                    new ClaimAnchorBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, id)).strength(hardness, 3600000.0F), radius, texture)
-            );
+        var claimAnchorBlock = new ClaimAnchorBlock(
+                BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, id)).strength(hardness, 3600000.0F),
+                radius,
+                texture
+        );
+        BLOCKS.register(name, () -> claimAnchorBlock);
 
-
-        var registeredItem = Registry.register(BuiltInRegistries.ITEM, id, new ClaimAnchorBlockItem(claimAnchorBlock,
-                new Item.Properties().setId(ResourceKey.create(Registries.ITEM, GetOffMyLawn.id(name))).useBlockDescriptionPrefix(), 0));
+        var registeredItem = new ClaimAnchorBlockItem(claimAnchorBlock,
+                new Item.Properties().setId(ResourceKey.create(Registries.ITEM, GetOffMyLawn.id(name))).useBlockDescriptionPrefix(), 0);
+        ITEMS.register(name, () -> registeredItem);
         ANCHORS.add(claimAnchorBlock);
         return Pair.of(claimAnchorBlock, registeredItem);
     }
@@ -69,17 +73,15 @@ public class GOMLBlocks {
 
     private static <T extends ClaimAugmentBlock> Pair<T, Item> register(String name, Function<BlockBehaviour.Properties, T> augment, int tooltipLines) {
         var id = GetOffMyLawn.id(name);
-        T registered = Registry.register(
-                BuiltInRegistries.BLOCK,
-                id,
-                augment.apply(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, id)))
-        );
+        T registered = augment.apply(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, id)));
+        BLOCKS.register(name, () -> registered);
         BooleanSupplier check = () -> GetOffMyLawn.CONFIG.enabledAugments.getOrDefault(registered, true);
 
         registered.setEnabledCheck(check);
 
-        Item registeredItem = Registry.register(BuiltInRegistries.ITEM, id, new ToggleableBlockItem((Block & PolymerHeadBlock) registered,
-                new Item.Properties().setId(ResourceKey.create(Registries.ITEM, id)).useBlockDescriptionPrefix(), tooltipLines, check));
+        Item registeredItem = new ToggleableBlockItem(registered,
+                new Item.Properties().setId(ResourceKey.create(Registries.ITEM, id)).useBlockDescriptionPrefix(), tooltipLines, check);
+        ITEMS.register(name, () -> registeredItem);
         AUGMENTS.add(registered);
 
         GOMLAugments.register(id, registered);
@@ -87,8 +89,9 @@ public class GOMLBlocks {
         return Pair.of(registered, registeredItem);
     }
 
-    public static void init() {
-        // NO-OP
+    public static void register(IEventBus eventBus) {
+        BLOCKS.register(eventBus);
+        ITEMS.register(eventBus);
     }
 
     private GOMLBlocks() {

@@ -4,44 +4,59 @@ import draylar.goml.GetOffMyLawn;
 import draylar.goml.api.Claim;
 import draylar.goml.api.ClaimUtils;
 import draylar.goml.block.SelectiveClaimAugmentBlock;
-import io.github.ladysnake.pal.AbilitySource;
-import io.github.ladysnake.pal.Pal;
-import io.github.ladysnake.pal.VanillaAbilities;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import draylar.goml.registry.GOMLBlocks;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class HeavenWingsAugmentBlock extends SelectiveClaimAugmentBlock {
-
-    public static final AbilitySource HEAVEN_WINGS = Pal.getAbilitySource("goml", "heaven_wings");
+    private static final Set<UUID> GRANTED_FLIGHT = ConcurrentHashMap.newKeySet();
 
     public HeavenWingsAugmentBlock(Properties settings, String texture) {
         super("heaven_wings", settings, texture);
-        ServerPlayConnectionEvents.JOIN.register((handler, packetSender, minecraftServer) -> {
+    }
+
+    public static void registerEvents() {
+        NeoForge.EVENT_BUS.addListener((PlayerEvent.PlayerLoggedInEvent event) -> {
+            if (!(event.getEntity() instanceof ServerPlayer player)) {
+                return;
+            }
             GetOffMyLawn.NEXT_TICK_TASK.add(() -> {
-                if (!handler.isAcceptingMessages()) {
+                if (player.isRemoved()) {
                     return;
                 }
 
-                var canFly = ClaimUtils.getClaimsAt(handler.player.level(), handler.player.blockPosition())
-                        .filter(x -> x.getValue().hasAugment(this) && this.canApply(x.getValue(), handler.player)).isNotEmpty();
-
-                if (canFly) {
-                    return;
+                var wings = GOMLBlocks.HEAVEN_WINGS.getFirst();
+                boolean canFly = ClaimUtils.getClaimsAt(player.level(), player.blockPosition())
+                        .filter(entry -> entry.getValue().hasAugment(wings)
+                                && wings.canApply(entry.getValue(), player))
+                        .isNotEmpty();
+                if (!canFly) {
+                    revokeFlight(player);
                 }
-
-                HEAVEN_WINGS.revokeFrom(handler.player, VanillaAbilities.ALLOW_FLYING);
             });
         });
     }
 
     @Override
     public void applyEffect(Player player) {
-        HEAVEN_WINGS.grantTo(player, VanillaAbilities.ALLOW_FLYING);
+        if (player instanceof ServerPlayer serverPlayer) {
+            GRANTED_FLIGHT.add(player.getUUID());
+            serverPlayer.getAbilities().mayfly = true;
+            serverPlayer.onUpdateAbilities();
+        }
     }
 
     @Override
     public void removeEffect(Player player) {
-        HEAVEN_WINGS.revokeFrom(player, VanillaAbilities.ALLOW_FLYING);
+        if (player instanceof ServerPlayer serverPlayer) {
+            revokeFlight(serverPlayer);
+        }
     }
 
     @Override
@@ -51,6 +66,14 @@ public class HeavenWingsAugmentBlock extends SelectiveClaimAugmentBlock {
 
         if (!canFly) {
             super.onPlayerExit(claim, player);
+        }
+    }
+
+    public static void revokeFlight(ServerPlayer player) {
+        if (GRANTED_FLIGHT.remove(player.getUUID()) && !player.isCreative() && !player.isSpectator()) {
+            player.getAbilities().mayfly = false;
+            player.getAbilities().flying = false;
+            player.onUpdateAbilities();
         }
     }
 }

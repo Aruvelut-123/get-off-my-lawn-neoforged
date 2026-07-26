@@ -3,7 +3,7 @@ package draylar.goml.item;
 import draylar.goml.GetOffMyLawn;
 import draylar.goml.api.ClaimUtils;
 import draylar.goml.block.ClaimAnchorBlock;
-import draylar.goml.other.FabricPermissionBridge;
+import draylar.goml.other.PermissionBridge;
 import draylar.goml.registry.GOMLBlocks;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -51,8 +51,8 @@ public class ClaimAnchorBlockItem extends TooltippedBlockItem {
         if (!ClaimUtils.isInAdminMode(context.getPlayer())) {
             var count = ClaimUtils.getClaimsOwnedBy(context.getLevel(), Objects.requireNonNull(context.getPlayer()).getUUID()).filter(x -> x.getValue().getType() != GOMLBlocks.ADMIN_CLAIM_ANCHOR.getFirst()).count();
 
-            var allowedCount = FabricPermissionBridge.checkPermissionInteger(context.getPlayer(), id("claim_limit"));
-            var allowedCount2 = FabricPermissionBridge.checkPermissionInteger(context.getPlayer(), id("claim_limit/" +
+            var allowedCount = PermissionBridge.checkPermissionInteger(context.getPlayer(), id("claim_limit"));
+            var allowedCount2 = PermissionBridge.checkPermissionInteger(context.getPlayer(), id("claim_limit/" +
                     context.getLevel().dimension().identifier().getNamespace() + "/" + context.getLevel().dimension().identifier().getPath()));
 
             var maxCount = allowedCount2.orElse(allowedCount.orElse(GetOffMyLawn.CONFIG.maxClaimsPerPlayer));

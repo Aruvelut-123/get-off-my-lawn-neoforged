@@ -7,8 +7,6 @@ import draylar.goml.api.Claim;
 import draylar.goml.api.ClaimBox;
 import draylar.goml.api.ClaimUtils;
 import draylar.goml.registry.GOMLEntities;
-import eu.pb4.polymer.core.api.utils.PolymerObject;
-import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
@@ -24,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class ClaimAnchorBlockEntity extends BlockEntity implements PolymerObject {
+public class ClaimAnchorBlockEntity extends BlockEntity {
 
     private static final String AUGMENT_LIST_KEY = "AugmentPositions";
 

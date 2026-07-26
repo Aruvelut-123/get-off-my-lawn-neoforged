@@ -1,12 +1,11 @@
 package draylar.goml.other;
 
-import net.fabricmc.loader.api.FabricLoader;
-import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
+import net.neoforged.fml.ModList;
 import org.apache.logging.log4j.Logger;
 
 import java.util.List;
 
-public class CardboardWarning implements PreLaunchEntrypoint {
+public class CardboardWarning {
     private static final Logger LOGGER = draylar.goml.GetOffMyLawn.LOGGER;
     public static final String MOD_NAME = "Get Off My Lawn Reserved";
 
@@ -20,9 +19,9 @@ public class CardboardWarning implements PreLaunchEntrypoint {
         var name = "";
         var loaded = false;
         for (var x : BROKEN_BUKKIT_IMPL) {
-            var m = FabricLoader.getInstance().getModContainer(x);
+            var m = ModList.get().getModContainerById(x);
             if (m.isPresent()) {
-                name = m.get().getMetadata().getName() + " (" + x + ")";
+                name = m.get().getModInfo().getDisplayName() + " (" + x + ")";
                 loaded = true;
                 break;
             }
@@ -30,11 +29,6 @@ public class CardboardWarning implements PreLaunchEntrypoint {
 
         BUKKIT_NAME = name;
         LOADED = loaded;
-    }
-
-    @Override
-    public void onPreLaunch() {
-        checkAndAnnounce();
     }
 
     public static void checkAndAnnounce() {

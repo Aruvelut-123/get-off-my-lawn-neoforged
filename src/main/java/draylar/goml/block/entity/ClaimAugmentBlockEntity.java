@@ -8,7 +8,6 @@ import draylar.goml.api.Claim;
 import draylar.goml.api.ClaimBox;
 import draylar.goml.api.ClaimUtils;
 import draylar.goml.registry.GOMLEntities;
-import eu.pb4.polymer.core.api.utils.PolymerObject;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.stream.Collectors;
@@ -20,7 +19,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
-public class ClaimAugmentBlockEntity extends BlockEntity implements PolymerObject {
+public class ClaimAugmentBlockEntity extends BlockEntity {
 
     private static final String PARENT_POSITION_KEY = "ParentPosition";
     private static final String CLAIM_POSITION_KEY = "ClaimPosition";

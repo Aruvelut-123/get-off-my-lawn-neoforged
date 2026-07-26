@@ -1,6 +1,5 @@
 package draylar.goml.item;
 
-import eu.pb4.polymer.core.api.block.PolymerHeadBlock;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
@@ -16,7 +15,7 @@ import net.minecraft.world.level.block.state.BlockState;
 public class ToggleableBlockItem extends TooltippedBlockItem {
     private final BooleanSupplier isEnabled;
 
-    public <T extends Block & PolymerHeadBlock> ToggleableBlockItem(T block, Properties settings, int lines, BooleanSupplier isEnabled) {
+    public ToggleableBlockItem(Block block, Properties settings, int lines, BooleanSupplier isEnabled) {
         super(block, settings, lines);
         this.isEnabled = isEnabled;
     }

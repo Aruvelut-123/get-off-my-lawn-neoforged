@@ -2,7 +2,6 @@ package draylar.goml.mixin;
 
 import draylar.goml.block.augment.HeavenWingsAugmentBlock;
 import draylar.goml.api.event.ServerPlayerUpdateEvents;
-import io.github.ladysnake.pal.VanillaAbilities;
 import net.minecraft.network.Connection;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.CommonListenerCookie;
@@ -17,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class PlayerListMixin {
     @Inject(method = "remove", at = @At("HEAD"))
     private void goml_remove(ServerPlayer player, CallbackInfo ci) {
-        HeavenWingsAugmentBlock.HEAVEN_WINGS.revokeFrom(player, VanillaAbilities.ALLOW_FLYING);
+        HeavenWingsAugmentBlock.revokeFlight(player);
     }
 
     @Inject(method = "placeNewPlayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/chat/Component;translatable(Ljava/lang/String;[Ljava/lang/Object;)Lnet/minecraft/network/chat/MutableComponent;"), slice = @Slice(from = @At(value = "CONSTANT", args = "stringValue=multiplayer.player.joined.renamed")))
