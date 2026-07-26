@@ -123,7 +123,7 @@ public abstract class PagedGui extends SimpleGui {
         private static final DisplayElement FILLER = DisplayElement.of(
                 new GuiElementBuilder(Items.WHITE_STAINED_GLASS_PANE)
                         .setName(Component.empty())
-                        .hideTooltip()
+                        .hideDefaultTooltip().noDefaults()
         );
 
         public static DisplayElement of(GuiElementInterface element) {
