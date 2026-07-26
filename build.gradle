@@ -1,188 +1,171 @@
-
 plugins {
-	id 'net.fabricmc.fabric-loom' version '1.15.+'
-	id 'maven-publish'
-	id "com.modrinth.minotaur" version "2.+"
-	id 'com.matthewprenger.cursegradle' version '1.4.0'
+    id 'java-library'
+    id 'maven-publish'
+    id 'net.neoforged.moddev' version '2.0.142'
+    id 'idea'
+    id 'com.modrinth.minotaur' version '2.+'
+    id 'com.matthewprenger.cursegradle' version '1.4.0'
 }
+
+group = project.maven_group
+version = "${project.mod_version}+${project.minecraft_version}+neoforge"
 
 base {
-	archivesName = project.archives_base_name
+    archivesName = project.archives_base_name
 }
-version = project.mod_version + "+" + project.minecraft_version
-group = project.maven_group
 
-
-loom {
-	accessWidenerPath = file("src/main/resources/goml.accesswidener")
-}
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
 repositories {
-	maven { url = "https://maven.fabricmc.net/" }
-	maven { url = "https://maven.nucleoid.xyz/" }
-	maven { url = 'https://jitpack.io' }
-	maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
-	maven { url 'https://maven.blamejared.com' }
-	maven { url "https://maven.shedaniel.me" }
-	maven { url "https://api.modrinth.com/maven" }
-	maven { url 'https://repo.bluecolored.de/releases' }
+    mavenCentral()
+    maven { url = 'https://maven.jamieswhiteshirt.com/libs-release/' }
+    maven { url = 'https://repo.bluecolored.de/releases' }
+    maven { url = 'https://repo.mikeprimm.com/' }
+}
 
-	maven {
-		name = "TerraformersMC"
-		url = "https://maven.terraformersmc.com/"
-	}
+neoForge {
+    version = project.neo_version
 
-	maven {
-		url = "https://maven.jamieswhiteshirt.com/libs-release/"
-		content {
-			includeGroup 'com.jamieswhiteshirt'
-		}
-	}
+    runs {
+        client {
+            client()
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
 
-	maven { url 'https://maven.ladysnake.org/releases' }
+        server {
+            server()
+            programArgument '--nogui'
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
 
-	maven {
-		url "https://www.cursemaven.com"
-		content {
-			includeGroup "curse.maven"
-		}
-	}
+        gameTestServer {
+            type = 'gameTestServer'
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
 
-	maven { url = "https://maven.resourcefulbees.com/repository/maven-public/" }
+        data {
+            clientData()
+            programArguments.addAll(
+                    '--mod', project.mod_id,
+                    '--all',
+                    '--output', file('src/generated/resources').absolutePath,
+                    '--existing', file('src/main/resources').absolutePath
+            )
+        }
 
-	maven { url 'https://repo.mikeprimm.com/' }
+        configureEach {
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            logLevel = org.slf4j.event.Level.INFO
+        }
+    }
 
-	//mavenLocal()
+    mods {
+        "${project.mod_id}" {
+            sourceSet sourceSets.main
+        }
+    }
+}
+
+sourceSets.main.resources {
+    srcDir 'src/generated/resources'
+}
+
+configurations {
+    runtimeClasspath.extendsFrom localRuntime
 }
 
 dependencies {
-	//to change the versions see the gradle.properties file
-	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
-	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+    implementation "com.jamieswhiteshirt:rtree-3i-lite-fabric:${project.rtree_version}"
 
-	implementation include("com.jamieswhiteshirt:rtree-3i-lite-fabric:${project.rtree_version}")
-	// CCA for data
-	implementation include("org.ladysnake.cardinal-components-api:cardinal-components-base:${project.cca_version}")
-
-	implementation include("org.ladysnake.cardinal-components-api:cardinal-components-level:${project.cca_version}")
-
-	// Flight
-	implementation include("io.github.ladysnake:PlayerAbilityLib:${pal_version}")
-
-	// Dev testing
-	//modCompileOnly 'curse.maven:BLAST-349938:3838824'
-	//modCompileOnly 'com.github.Ladysnake:BLAST:1.19-SNAPSHOT'
-	//modCompileOnly 'vazkii.botania:Botania:1.18.1-427-FABRIC'
-
-
-	//modCompileOnly "maven.modrinth:argonauts:${project.argonauts_version}"
-	//modCompileOnly "maven.modrinth:resourceful-lib:${project.reslib_version}"
-	compileOnly "curse.maven:dynmapforge-59433:5442994"
-
-	// Server side stuff
-	implementation "eu.pb4:polymer-core:${project.polymer_version}"
-	implementation include("eu.pb4:sgui:${project.sgui_version}")
-	implementation include("eu.pb4:placeholder-api:${project.placeholder_version}")
-	implementation include("xyz.nucleoid:server-translations-api:${project.stapi_version}")
-	compileOnly "me.lucko:fabric-permissions-api:0.7.0"
-	implementation include("eu.pb4:common-protection-api:2.0.0")
-
-	// Webmap integrations
-	compileOnly "us.dynmap:DynmapCoreAPI:${dynmap_version}"
-	compileOnly "de.bluecolored:bluemap-api:${bluemap_version}"
+    // Optional web-map integrations. Their APIs are loader-neutral.
+    compileOnly "us.dynmap:DynmapCoreAPI:${project.dynmap_version}"
+    compileOnly "de.bluecolored:bluemap-api:${project.bluemap_version}"
 }
 
-processResources {
-	inputs.property "version", project.version
+def generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
+    def replaceProperties = [
+            minecraft_version_range: project.minecraft_version_range,
+            neo_version_range      : project.neo_version_range,
+            mod_id                 : project.mod_id,
+            mod_name               : project.mod_name,
+            mod_license            : project.mod_license,
+            mod_version            : project.version,
+            mod_description        : project.mod_description,
+            mod_authors            : project.mod_authors
+    ]
 
-	filesMatching('fabric.mod.json') {
-		expand "version": project.version
-	}
+    inputs.properties replaceProperties
+    expand replaceProperties
+    from 'src/main/templates'
+    into layout.buildDirectory.dir('generated/sources/modMetadata')
 }
 
-// ensure that the encoding is set to UTF-8, no matter what the system default is
-// this fixes some edge cases with special characters not displaying correctly
-// see http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
-tasks.withType(JavaCompile) {
-	options.encoding = "UTF-8"
+sourceSets.main.resources.srcDir generateModMetadata
+neoForge.ideSyncTask generateModMetadata
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
 }
 
-jar {
-	from "LICENSE"
-
-	from("src/main/resources/data/goml/lang") {
-		into("assets/goml/lang")
-	}
+tasks.withType(ProcessResources).configureEach {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-// configure the maven publication
+tasks.named('jar', Jar).configure {
+    from 'LICENSE'
+
+    from('src/main/resources/data/goml/lang') {
+        into 'assets/goml/lang'
+    }
+
+    manifest {
+        attributes(
+                'Specification-Title': project.mod_id,
+                'Specification-Vendor': project.mod_authors,
+                'Specification-Version': project.mod_version,
+                'Implementation-Title': project.name,
+                'Implementation-Version': project.version,
+                'Implementation-Vendor': project.mod_authors
+        )
+    }
+}
+
 publishing {
-	publications {
-		mavenJava(MavenPublication) {
-			// add all the jars that should be included when publishing to maven
-
-		}
-	}
-
-	// select the repositories you want to publish to
-	repositories {
-		// uncomment to publish to the local maven
-		// mavenLocal()
-	}
+    publications {
+        register('mavenJava', MavenPublication) {
+            from components.java
+        }
+    }
 }
 
-
-curseforge {
-	if (System.getenv("CURSEFORGE")) {
-		apiKey = System.getenv("CURSEFORGE")
-
-		project {
-			id = "572651"
-			releaseType = "release"
-			changelog = System.getenv("CHANGELOG")
-			changelogType = "markdown"
-			addGameVersion((project.minecraft_version.contains("-") ? ((String) project.minecraft_version.split("-")[0] + "-snapshot") : project.minecraft_version))
-			addGameVersion "Fabric"
-			relations {
-				requiredDependency 'polymer'
-			}
-			mainArtifact(jar.archiveFile)
-
-			afterEvaluate {
-				uploadTask.dependsOn("jar")
-			}
-		}
-
-		jar {
-			finalizedBy project.tasks.curseforge
-		}
-	}
-
-	options {
-		forgeGradleIntegration = false
-	}
-
-
+// Publishing is opt-in and is never part of a normal local build.
+if (System.getenv('CURSEFORGE')) {
+    curseforge {
+        apiKey = System.getenv('CURSEFORGE')
+        project {
+            id = '572651'
+            releaseType = 'release'
+            changelog = System.getenv('CHANGELOG') ?: ''
+            changelogType = 'markdown'
+            addGameVersion project.minecraft_version
+            addGameVersion 'NeoForge'
+            mainArtifact tasks.named('jar')
+        }
+        options {
+            forgeGradleIntegration = false
+        }
+    }
 }
 
-if (System.getenv("MODRINTH")) {
-	modrinth {
-		token = System.getenv("MODRINTH")
-		projectId = 'j5niDupl'
-		versionNumber = "" + version
-
-		changelog = System.getenv("CHANGELOG")
-		// On fabric, use 'jar' instead of 'jar'
-		uploadFile = jar
-		gameVersions = [((String) project.minecraft_version)]
-		dependencies {
-			required.project "polymer"
-		}
-		loaders = ["fabric"]
-	}
-
-	jar {
-		finalizedBy project.tasks.modrinth
-	}
+if (System.getenv('MODRINTH')) {
+    modrinth {
+        token = System.getenv('MODRINTH')
+        projectId = 'j5niDupl'
+        versionNumber = project.version.toString()
+        versionName = "Get Off My Lawn ReServed ${project.version}"
+        changelog = System.getenv('CHANGELOG') ?: ''
+        uploadFile = tasks.named('jar')
+        gameVersions = [project.minecraft_version]
+        loaders = ['neoforge']
+    }
 }
