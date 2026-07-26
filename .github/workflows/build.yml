@@ -10,15 +10,18 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest]
         include:
-          - minecraft: '1.21.1'
+          - os: ubuntu-latest
+            minecraft: '1.21.1'
             java: 21
-          - minecraft: '26.1'
+          - os: ubuntu-latest
+            minecraft: '26.1'
             java: 25
-          - minecraft: '26.1.1'
+          - os: ubuntu-latest
+            minecraft: '26.1.1'
             java: 25
-          - minecraft: '26.1.2'
+          - os: ubuntu-latest
+            minecraft: '26.1.2'
             java: 25
     runs-on: ${{ matrix.os }}
     steps:
