@@ -1,11 +1,10 @@
 param(
-    [ValidateSet('build', 'assemble', 'compileJava', 'runGameTestServer')]
+    [ValidateSet('build', 'assemble', 'compileJava', 'runServer', 'runGameTestServer')]
     [string]$Task = 'build'
 )
 
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
-$outputRoot = Join-Path $repositoryRoot 'build/multiversion'
 $profiles = Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'versions') -Filter '*.properties' |
         Sort-Object BaseName
 $gradle = if ($IsWindows -or $env:OS -eq 'Windows_NT') {
@@ -14,9 +13,16 @@ $gradle = if ($IsWindows -or $env:OS -eq 'Windows_NT') {
     Join-Path $repositoryRoot 'gradlew'
 }
 
-& $gradle clean '--no-daemon' '--console=plain'
-if ($LASTEXITCODE -ne 0) {
-    exit $LASTEXITCODE
+$projectDirectories = @(
+    $repositoryRoot
+    Join-Path $repositoryRoot 'platforms/neoforge-1.21.1'
+)
+
+foreach ($projectDirectory in $projectDirectories) {
+    & $gradle '-p' $projectDirectory clean '--no-daemon' '--console=plain'
+    if ($LASTEXITCODE -ne 0) {
+        exit $LASTEXITCODE
+    }
 }
 
 foreach ($profile in $profiles) {
@@ -24,15 +30,9 @@ foreach ($profile in $profiles) {
     if ($LASTEXITCODE -ne 0) {
         exit $LASTEXITCODE
     }
-
-    if ($Task -in @('build', 'assemble')) {
-        $profileOutput = Join-Path $outputRoot $profile.BaseName
-        New-Item -ItemType Directory -Force -Path $profileOutput | Out-Null
-        Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'build/libs') -Filter '*.jar' |
-                Copy-Item -Destination $profileOutput -Force
-    }
 }
 
 if ($Task -in @('build', 'assemble')) {
+    $outputRoot = Join-Path $repositoryRoot 'build/multiversion'
     Write-Host "Multi-version artifacts: $outputRoot"
 }

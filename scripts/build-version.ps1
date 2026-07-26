@@ -3,7 +3,7 @@ param(
     [ValidatePattern('^[0-9][0-9A-Za-z.-]*$')]
     [string]$Profile,
 
-    [ValidateSet('build', 'assemble', 'compileJava', 'runGameTestServer')]
+    [ValidateSet('build', 'assemble', 'compileJava', 'runServer', 'runGameTestServer')]
     [string]$Task = 'build',
 
     [switch]$NoClean
@@ -12,6 +12,11 @@ param(
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $profileFile = Join-Path $repositoryRoot "versions/$Profile.properties"
+$projectDirectory = if ($Profile -eq '1.21.1') {
+    Join-Path $repositoryRoot 'platforms/neoforge-1.21.1'
+} else {
+    $repositoryRoot
+}
 
 if (-not (Test-Path -LiteralPath $profileFile -PathType Leaf)) {
     throw "Unknown Minecraft version profile '$Profile' (expected $profileFile)"
@@ -46,8 +51,25 @@ if (-not $NoClean) {
 }
 $tasks += $Task
 
-Write-Host "Building GOML for Minecraft $Profile ($Task)"
-& $gradle @tasks @gradleProperties '--no-daemon' '--console=plain'
+Write-Host "Building GOML for Minecraft $Profile ($Task) from $projectDirectory"
+& $gradle '-p' $projectDirectory @tasks @gradleProperties '--no-daemon' '--console=plain'
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
+}
+
+if ($Task -in @('build', 'assemble')) {
+    $libraryDirectory = Join-Path $projectDirectory 'build/libs'
+    $artifactDirectory = Join-Path $repositoryRoot "build/multiversion/$Profile"
+    New-Item -ItemType Directory -Force -Path $artifactDirectory | Out-Null
+
+    $artifacts = @(
+        Get-ChildItem -LiteralPath $libraryDirectory -Filter '*.jar' |
+                Where-Object { $_.Name -notmatch '-(sources|dev)(-all)?\.jar$' }
+    )
+    if ($artifacts.Count -eq 0) {
+        throw "No release artifact found in $libraryDirectory"
+    }
+
+    $artifacts | Copy-Item -Destination $artifactDirectory -Force
+    Write-Host "Artifacts: $artifactDirectory"
 }
