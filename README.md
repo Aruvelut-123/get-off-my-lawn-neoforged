@@ -1,18 +1,34 @@
 # Get Off My Lawn ReServed
 
-*Get Off My Lawn ReServed* is a take on the popular concept of player claims for Survival/Freebuild Fabric servers. 
-This mod works fully server side (no client mod required!) while being compatible with major Fabric modpacks
+*Get Off My Lawn ReServed* is a player-claim mod for Survival/Freebuild NeoForge servers.
+It works fully server side, so players do not need to install it on their clients.
 
-This project is a fork [Get Off My Lawn by Draylar](https://github.com/Draylar/get-off-my-lawn), with focus on improving and building on top of the original.
+This project is a fork of [Get Off My Lawn by Draylar](https://github.com/Draylar/get-off-my-lawn), with a focus on improving and building on top of the original.
 
+## Supported versions
 
-# Video Showcase
+| Minecraft | NeoForge | Additional dependency |
+| --- | --- | --- |
+| 1.21.1 | **21.1.233** | [Forgified Fabric API](https://www.curseforge.com/minecraft/mc-mods/forgified-fabric-api) `0.116.7+2.2.4+1.21.1` |
+| 26.1.x | Matching 26.1.x NeoForge release (tested with MC 26.1.2 / NeoForge 26.1.2.87) | None |
+
+The 1.21.1 build uses Forgified Fabric API's base compatibility layer and
+Forgified Fabric Loader to retain the PB4-based server UI and placeholder
+integration. Installing the full Forgified Fabric API build listed above is
+recommended. The 26.1.x build is a native NeoForge port and does not require
+Forgified Fabric API.
+
+Release files use the format
+`<mod-version>+<minecraft-version>+neoforge`, for example
+`goml-1.21.0+1.21.1+neoforge.jar`.
+
+## Video showcase
 
 * English: https://youtu.be/R9-PuMRbNEc
 
 * Polish: https://youtu.be/1V8kh0h3NoU
 
-# Getting started
+## Getting started
 
 To get started, you'll have to craft a *Claim Anchor*. Each anchor has a different (configurable by admin) claim radius; after placing one, a box around it will be formed. This box is yours!
 
@@ -29,13 +45,17 @@ When this item equipped in the helmet, mainhand or offhand slot, claim outlines 
 
 ## [Recipes](recipes.md)
 
-## Claim configuration:
+### Claim configuration
+
 To configure your claim, you can interact with the anchor block. A UI will appear that offers several configuration options:
+
 - The player list can be used to add and remove access of players to your claim
 - The Augment list, that can be used for checking and configuring active augments
 
-## Claim upgrades:
+### Claim upgrades
+
 To upgrade your claim, place an Anchor Augment next to the core Claim Anchor. Anchor Augments available include:
+
 - Ender Binding: Prevents Endermen from teleporting
 - Villager Core: Prevents Zombies from damaging Villagers
 - Greeter: MOTD to visitors
@@ -48,7 +68,8 @@ To upgrade your claim, place an Anchor Augment next to the core Claim Anchor. An
 - PvP Arena: Allows changing pvp state in claim
 - Explosion Controller: Allows toggling explosion protection
 
-## Config:
+## Configuration
+
 You can find config file in `./config/getoffmylawn.json`. To reload it, just type `/goml admin reload` in chat/console.
 
 ```json5
@@ -59,7 +80,17 @@ You can find config file in `./config/getoffmylawn.json`. To reload it, just typ
   "crystalRadius": 75,                  // Radius of crystal claim
   "emeradicRadius": 125,                // Radius of emeradic claim
   "witheredRadius": 200,                // Radius of withered claim
+  "maxClaimsPerPlayer": -1,             // -1 means unlimited; permission options can override this
+  "enablePvPinClaims": false,
+  "allowDamagingUnnamedHostileMobs": true,
+  "allowDamagingNamedHostileMobs": false,
   "claimProtectsFullWorldHeight": false,// Makes claim protect area from bottom of the world to top
+  "claimAreaHeightMultiplier": 1.0,
+  "makeClaimAreaChunkBound": false,
+  "allowClaimOverlappingIfSameOwner": false,
+  "allowFakePlayersToModify": false,
+  "protectAgainstHostileExplosionsActivatedByTrustedPlayers": false,
+  "relaxedEntitySourceProtectionCheck": false,
   "dimensionBlacklist": [               // Allows to blacklist specific dimensions
     "example:dim"
   ],             
@@ -102,6 +133,27 @@ You can find config file in `./config/getoffmylawn.json`. To reload it, just typ
 }
 ```
 
+## Building
+
+Use PowerShell 7 and the included Gradle wrapper. Java 21 is used for the
+1.21.1 target and Java 25 for the 26.1.x target.
+
+```powershell
+./scripts/build-version.ps1 -Profile 1.21.1
+./scripts/build-version.ps1 -Profile 26.1.2
+./scripts/build-all.ps1
+```
+
+Collected release jars are written to
+`build/multiversion/<minecraft-version>/`. The build and release workflows use
+the same version profiles.
+
+## Development note
+
+The NeoForge port, multi-version build setup, compatibility backports, and
+documentation were created with assistance from OpenAI Codex, followed by
+local compile and dedicated-server validation.
 
 ## License
+
 *Get Off My Lawn ReServed* is available under the MIT license. The project, code, and assets found in this repository are available for free public use (as long as credited).
