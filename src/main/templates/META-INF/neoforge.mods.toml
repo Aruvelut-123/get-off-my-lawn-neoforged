@@ -1,5 +1,5 @@
 modLoader="javafml"
-loaderVersion="${neo_version_range}"
+loaderVersion="${loader_version_range}"
 license="${mod_license}"
 issueTrackerURL="https://github.com/Patbox/get-off-my-lawn-reserved/issues"
 

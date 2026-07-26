@@ -74,7 +74,9 @@ configurations {
 }
 
 dependencies {
-    jarJar(implementation(group: 'com.jamieswhiteshirt', name: 'rtree-3i-lite-fabric')) {
+    jarJar(implementation(group: 'com.jamieswhiteshirt', name: 'rtree-3i-lite-fabric') {
+        transitive = false
+    }) {
         version {
             strictly "[${project.rtree_version},0.4.0)"
             prefer project.rtree_version
@@ -83,19 +85,25 @@ dependencies {
 
     // These PB4 libraries are loader-neutral implementations built entirely on
     // vanilla server primitives. Bundle them so modpacks do not need Fabric jars.
-    jarJar(implementation(group: 'eu.pb4', name: 'sgui')) {
+    jarJar(implementation(group: 'eu.pb4', name: 'sgui') {
+        transitive = false
+    }) {
         version {
             strictly "[${project.sgui_version},3.0.0)"
             prefer project.sgui_version
         }
     }
-    jarJar(implementation(group: 'eu.pb4', name: 'placeholder-api')) {
+    jarJar(implementation(group: 'eu.pb4', name: 'placeholder-api') {
+        transitive = false
+    }) {
         version {
             strictly "[${project.placeholder_version},4.0.0)"
             prefer project.placeholder_version
         }
     }
-    jarJar(implementation(group: 'eu.pb4', name: 'common-protection-api')) {
+    jarJar(implementation(group: 'eu.pb4', name: 'common-protection-api') {
+        transitive = false
+    }) {
         version {
             strictly "[${project.common_protection_api_version},3.0.0)"
             prefer project.common_protection_api_version
@@ -111,6 +119,7 @@ def generateModMetadata = tasks.register('generateModMetadata', ProcessResources
     def replaceProperties = [
             minecraft_version_range: project.minecraft_version_range,
             neo_version_range      : project.neo_version_range,
+            loader_version_range   : project.loader_version_range,
             mod_id                 : project.mod_id,
             mod_name               : project.mod_name,
             mod_license            : project.mod_license,
