@@ -28,7 +28,8 @@
     "augment.EndermanEntityMixin${'$'}PickBlockGoalMixin",
     "augment.EndermanEntityMixin${'$'}PlaceBlockGoalMixin",
     "augment.VillagerEntityMixin",
-    "compat.DynmapClientMixin"
+    "compat.DynmapClientMixin",
+    "compat.SguiPacketSenderMixin"
   ],
   "injectors": {
     "defaultRequire": 0
