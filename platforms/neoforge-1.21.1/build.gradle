@@ -139,10 +139,6 @@ def remapMinecraftIntermediary = tasks.register('remapMinecraftIntermediary', Re
     addNestedDependencies.set(false)
 }
 
-remapMinecraftIntermediary.configure {
-    dependsOn tasks.named('genSourcemaps')
-}
-
 def registerIntermediaryRemap = { String taskName, Configuration inputConfiguration, String outputName ->
     tasks.register(taskName, RemapJarTask) {
         dependsOn remapMinecraftIntermediary
