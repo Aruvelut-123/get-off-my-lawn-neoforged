@@ -1,5 +1,7 @@
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
+import java.awt.image.BufferedImage
+import javax.imageio.ImageIO
 
 plugins {
     id 'java-library'
@@ -200,6 +202,46 @@ def nativeItemModels = [
         goggles               : 'minecraft:item/iron_helmet'
 ]
 
+def skinFaceRegions = [
+        down : [16, 0, 48, 0],
+        up   : [8, 0, 40, 0],
+        north: [8, 8, 40, 8],
+        south: [24, 8, 56, 8],
+        west : [16, 8, 48, 8],
+        east : [0, 8, 32, 8]
+]
+
+def writeSkinFace = { File sourceFile, File outputFile, List<Integer> region ->
+    def skin = ImageIO.read(sourceFile)
+    if (skin == null || skin.width < 64 || skin.height < 16) {
+        throw new GradleException("Expected a 64-pixel-wide Minecraft skin: ${sourceFile}")
+    }
+
+    def face = new BufferedImage(8, 8, BufferedImage.TYPE_INT_ARGB)
+    def graphics = face.createGraphics()
+    try {
+        graphics.drawImage(
+                skin,
+                0, 0, 8, 8,
+                region[0], region[1], region[0] + 8, region[1] + 8,
+                null
+        )
+        if (skin.height >= 16 && region[2] + 8 <= skin.width && region[3] + 8 <= skin.height) {
+            graphics.drawImage(
+                    skin,
+                    0, 0, 8, 8,
+                    region[2], region[3], region[2] + 8, region[3] + 8,
+                    null
+            )
+        }
+    } finally {
+        graphics.dispose()
+    }
+
+    outputFile.parentFile.mkdirs()
+    ImageIO.write(face, 'png', outputFile)
+}
+
 def nativeClientResources = tasks.register('generateNativeClientResources') {
     def outputDirectory = layout.buildDirectory.dir('generated/resources/nativeClient')
     outputs.dir outputDirectory
@@ -217,8 +259,16 @@ def nativeClientResources = tasks.register('generateNativeClientResources') {
                     ]
             ]
             def blockModel = [
-                    parent  : 'minecraft:block/cube_all',
-                    textures: [all: "${project.mod_id}:block/${blockName}"]
+                    parent  : 'minecraft:block/cube',
+                    textures: [
+                            particle: "${project.mod_id}:block/${blockName}_north",
+                            down    : "${project.mod_id}:block/${blockName}_down",
+                            up      : "${project.mod_id}:block/${blockName}_up",
+                            north   : "${project.mod_id}:block/${blockName}_north",
+                            south   : "${project.mod_id}:block/${blockName}_south",
+                            west    : "${project.mod_id}:block/${blockName}_west",
+                            east    : "${project.mod_id}:block/${blockName}_east"
+                    ]
             ]
             def itemDefinition = [
                     model: [
@@ -235,10 +285,13 @@ def nativeClientResources = tasks.register('generateNativeClientResources') {
             blockModelFile.text = JsonOutput.prettyPrint(JsonOutput.toJson(blockModel))
             itemFile.text = JsonOutput.prettyPrint(JsonOutput.toJson(itemDefinition))
 
-            copy {
-                from file("assets/${sourceName}.png")
-                into new File(outputRoot, "assets/${project.mod_id}/textures/block")
-                rename { "${blockName}.png" }
+            def sourceTexture = file("assets/${sourceName}.png")
+            skinFaceRegions.each { faceName, region ->
+                writeSkinFace(
+                        sourceTexture,
+                        new File(outputRoot, "assets/${project.mod_id}/textures/block/${blockName}_${faceName}.png"),
+                        region
+                )
             }
         }
 
