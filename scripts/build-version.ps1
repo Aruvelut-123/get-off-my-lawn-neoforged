@@ -22,6 +22,7 @@ if (-not (Test-Path -LiteralPath $profileFile -PathType Leaf)) {
     throw "Unknown Minecraft version profile '$Profile' (expected $profileFile)"
 }
 
+# 解析版本配置文件并转换为 Gradle 参数
 $profileProperties = @{}
 $gradleProperties = @()
 foreach ($line in Get-Content -LiteralPath $profileFile) {
@@ -41,12 +42,22 @@ foreach ($line in Get-Content -LiteralPath $profileFile) {
     $gradleProperties += "-P$key=$value"
 }
 
+# 根据操作系统选择 Gradle Wrapper
 $gradle = if ($IsWindows -or $env:OS -eq 'Windows_NT') {
     Join-Path $repositoryRoot 'gradlew.bat'
 } else {
     Join-Path $repositoryRoot 'gradlew'
 }
 
+# 1. 【核心修复】预热 Loom/NeoForge 资产
+# 在 clean 和 build 之前，先下载并合并 Minecraft 依赖，防止 remapMinecraftIntermediary 找不到文件
+Write-Host "Pre-warming Loom/NeoForge assets for $Profile..."
+& $gradle '-p' $projectDirectory 'downloadAssets' '--no-daemon' '--console=plain'
+if ($LASTEXITCODE -ne 0) {
+    Write-Warning "Asset pre-warming failed with exit code $LASTEXITCODE. The main build might fail."
+}
+
+# 2. 组装并执行主构建任务
 $tasks = @()
 if (-not $NoClean) {
     $tasks += 'clean'
@@ -54,11 +65,12 @@ if (-not $NoClean) {
 $tasks += $Task
 
 Write-Host "Building GOML for Minecraft $Profile ($Task) from $projectDirectory"
-& $gradle '-p' $projectDirectory @tasks @gradleProperties '--no-daemon' '--console=plain'
+& $gradle '-p' $projectDirectory @tasks @gradleProperties '--no-daemon' '--console=plain' '--stacktrace'
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
+# 3. 收集并复制构建产物
 if ($Task -in @('build', 'assemble')) {
     $libraryDirectory = Join-Path $projectDirectory 'build/libs'
     $artifactDirectory = Join-Path $repositoryRoot "build/multiversion/$Profile"
@@ -74,5 +86,5 @@ if ($Task -in @('build', 'assemble')) {
     }
 
     $artifacts | Copy-Item -Destination $artifactDirectory -Force
-    Write-Host "Artifacts: $artifactDirectory"
+    Write-Host "Artifacts successfully copied to: $artifactDirectory"
 }
