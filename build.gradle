@@ -21,10 +21,11 @@ base {
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(project.java_version as int)
 
-def versionSourceDirectory = project.source_line == 'main'
-        ? 'src/main/java'
-        : "src/${project.source_line}/java"
-sourceSets.main.java.setSrcDirs([versionSourceDirectory])
+def versionSourceDirectories = ['src/main/java']
+if (project.source_line != 'main') {
+    versionSourceDirectories.add("src/${project.source_line}/java")
+}
+sourceSets.main.java.setSrcDirs(versionSourceDirectories)
 
 repositories {
     mavenCentral()
@@ -46,6 +47,7 @@ neoForge {
 
         server {
             server()
+            gameDirectory = layout.projectDirectory.dir("run/${project.minecraft_version}-server")
             programArgument '--nogui'
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }

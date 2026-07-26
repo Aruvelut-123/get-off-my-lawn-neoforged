@@ -20,7 +20,6 @@ import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
-import net.neoforged.neoforge.event.level.block.BreakBlockEvent;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.jetbrains.annotations.ApiStatus;
 
@@ -34,7 +33,7 @@ public final class EventHandlers {
         NeoForge.EVENT_BUS.addListener(EventHandlers::onAttackEntity);
         NeoForge.EVENT_BUS.addListener(EventHandlers::onRightClickBlock);
         NeoForge.EVENT_BUS.addListener(EventHandlers::onLeftClickBlock);
-        NeoForge.EVENT_BUS.addListener(EventHandlers::onBreakBlock);
+        BreakEventHooks.register();
     }
 
     private static void onEntityInteract(PlayerInteractEvent.EntityInteract event) {
@@ -172,23 +171,6 @@ public final class EventHandlers {
                 player,
                 event.getHand(),
                 pos,
-                PermissionReason.BLOCK_PROTECTED
-        );
-        if (result instanceof InteractionResult.Fail) {
-            event.setCanceled(true);
-        }
-    }
-
-    private static void onBreakBlock(BreakBlockEvent event) {
-        if (event.getLevel().isClientSide()) {
-            return;
-        }
-
-        var result = testPermission(
-                ClaimUtils.getClaimsAt(event.getLevel(), event.getPos()),
-                event.getPlayer(),
-                InteractionHand.MAIN_HAND,
-                event.getPos(),
                 PermissionReason.BLOCK_PROTECTED
         );
         if (result instanceof InteractionResult.Fail) {
