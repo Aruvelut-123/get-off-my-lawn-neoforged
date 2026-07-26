@@ -49,15 +49,6 @@ $gradle = if ($IsWindows -or $env:OS -eq 'Windows_NT') {
     Join-Path $repositoryRoot 'gradlew'
 }
 
-# 1. 【核心修复】预热 Loom/NeoForge 资产
-# 在 clean 和 build 之前，先下载并合并 Minecraft 依赖，防止 remapMinecraftIntermediary 找不到文件
-Write-Host "Pre-warming Loom/NeoForge assets for $Profile..."
-& $gradle '-p' $projectDirectory 'downloadAssets' '--no-daemon' '--console=plain'
-if ($LASTEXITCODE -ne 0) {
-    Write-Warning "Asset pre-warming failed with exit code $LASTEXITCODE. The main build might fail."
-}
-
-# 2. 组装并执行主构建任务
 $tasks = @()
 if (-not $NoClean) {
     $tasks += 'clean'
@@ -65,7 +56,7 @@ if (-not $NoClean) {
 $tasks += $Task
 
 Write-Host "Building GOML for Minecraft $Profile ($Task) from $projectDirectory"
-& $gradle '-p' $projectDirectory @tasks @gradleProperties '--no-daemon' '--console=plain' '--stacktrace'
+& $gradle '-p' $projectDirectory @tasks @gradleProperties '--no-daemon' '--console=plain'
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
