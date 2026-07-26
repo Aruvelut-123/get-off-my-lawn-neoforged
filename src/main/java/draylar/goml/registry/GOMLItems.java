@@ -13,30 +13,37 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 public class GOMLItems {
     private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(BuiltInRegistries.ITEM, GetOffMyLawn.MOD_ID);
     public static List<Item> BASE_ITEMS = new ArrayList<>();
 
-    public static final Item REINFORCED_UPGRADE_KIT = registerUpgradeKit("reinforced_upgrade_kit", GOMLBlocks.MAKESHIFT_CLAIM_ANCHOR.getFirst(), GOMLBlocks.REINFORCED_CLAIM_ANCHOR.getFirst(), Items.IRON_INGOT);
-    public static final Item GLISTENING_UPGRADE_KIT = registerUpgradeKit("glistening_upgrade_kit", GOMLBlocks.REINFORCED_CLAIM_ANCHOR.getFirst(), GOMLBlocks.GLISTENING_CLAIM_ANCHOR.getFirst(), Items.GOLD_INGOT);
-    public static final Item CRYSTAL_UPGRADE_KIT = registerUpgradeKit("crystal_upgrade_kit", GOMLBlocks.GLISTENING_CLAIM_ANCHOR.getFirst(), GOMLBlocks.CRYSTAL_CLAIM_ANCHOR.getFirst(), Items.DIAMOND);
-    public static final Item EMERADIC_UPGRADE_KIT = registerUpgradeKit("emeradic_upgrade_kit", GOMLBlocks.CRYSTAL_CLAIM_ANCHOR.getFirst(), GOMLBlocks.EMERADIC_CLAIM_ANCHOR.getFirst(), Items.EMERALD);
-    public static final Item WITHERED_UPGRADE_KIT = registerUpgradeKit("withered_upgrade_kit", GOMLBlocks.EMERADIC_CLAIM_ANCHOR.getFirst(), GOMLBlocks.WITHERED_CLAIM_ANCHOR.getFirst(), Items.NETHER_STAR);
+    public static final DeferredHolder<Item, UpgradeKitItem> REINFORCED_UPGRADE_KIT = registerUpgradeKit("reinforced_upgrade_kit", GOMLBlocks.MAKESHIFT_CLAIM_ANCHOR, GOMLBlocks.REINFORCED_CLAIM_ANCHOR, Items.IRON_INGOT);
+    public static final DeferredHolder<Item, UpgradeKitItem> GLISTENING_UPGRADE_KIT = registerUpgradeKit("glistening_upgrade_kit", GOMLBlocks.REINFORCED_CLAIM_ANCHOR, GOMLBlocks.GLISTENING_CLAIM_ANCHOR, Items.GOLD_INGOT);
+    public static final DeferredHolder<Item, UpgradeKitItem> CRYSTAL_UPGRADE_KIT = registerUpgradeKit("crystal_upgrade_kit", GOMLBlocks.GLISTENING_CLAIM_ANCHOR, GOMLBlocks.CRYSTAL_CLAIM_ANCHOR, Items.DIAMOND);
+    public static final DeferredHolder<Item, UpgradeKitItem> EMERADIC_UPGRADE_KIT = registerUpgradeKit("emeradic_upgrade_kit", GOMLBlocks.CRYSTAL_CLAIM_ANCHOR, GOMLBlocks.EMERADIC_CLAIM_ANCHOR, Items.EMERALD);
+    public static final DeferredHolder<Item, UpgradeKitItem> WITHERED_UPGRADE_KIT = registerUpgradeKit("withered_upgrade_kit", GOMLBlocks.EMERADIC_CLAIM_ANCHOR, GOMLBlocks.WITHERED_CLAIM_ANCHOR, Items.NETHER_STAR);
 
-    public static final Item GOGGLES = register("goggles", GogglesItem::new);
+    public static final DeferredHolder<Item, GogglesItem> GOGGLES = register("goggles", GogglesItem::new);
 
-    private static UpgradeKitItem registerUpgradeKit(String name, ClaimAnchorBlock from, ClaimAnchorBlock to, Item item) {
-        return register(name, (s) -> new UpgradeKitItem(s, from, to, item));
+    private static DeferredHolder<Item, UpgradeKitItem> registerUpgradeKit(
+            String name,
+            GOMLBlocks.RegisteredPair<ClaimAnchorBlock> from,
+            GOMLBlocks.RegisteredPair<ClaimAnchorBlock> to,
+            Item item
+    ) {
+        return register(name, (s) -> new UpgradeKitItem(s, from.getFirst(), to.getFirst(), item));
     }
 
-    private static <T extends Item> T register(String name, Function<Item.Properties, T> item) {
+    private static <T extends Item> DeferredHolder<Item, T> register(String name, Function<Item.Properties, T> item) {
         var id = GetOffMyLawn.id(name);
-        var value = item.apply(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, id)));
-        BASE_ITEMS.add(value);
-        ITEMS.register(name, () -> value);
-        return value;
+        return ITEMS.register(name, () -> {
+            var value = item.apply(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, id)));
+            BASE_ITEMS.add(value);
+            return value;
+        });
     }
 
     public static void register(IEventBus eventBus) {

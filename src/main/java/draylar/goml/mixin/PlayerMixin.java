@@ -20,7 +20,10 @@ public abstract class PlayerMixin extends LivingEntity {
         super(entityType, world);
     }
 
-    @ModifyExpressionValue(method = "doSweepAttack", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;getEntitiesOfClass(Ljava/lang/Class;Lnet/minecraft/world/phys/AABB;)Ljava/util/List;"))
+    @ModifyExpressionValue(
+            method = "doSweepAttack(Lnet/minecraft/world/entity/Entity;FLnet/minecraft/world/damagesource/DamageSource;FLnet/minecraft/world/phys/AABB;)V",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;getEntitiesOfClass(Ljava/lang/Class;Lnet/minecraft/world/phys/AABB;)Ljava/util/List;")
+    )
     private List<Entity> filterEntities(List<Entity> original) {
         original.removeIf(x -> !ClaimUtils.canDamageEntity(this.level(), x, this, null));
         return original;

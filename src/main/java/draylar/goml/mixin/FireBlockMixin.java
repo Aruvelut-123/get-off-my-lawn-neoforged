@@ -2,6 +2,7 @@ package draylar.goml.mixin;
 
 import draylar.goml.api.ClaimUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
@@ -14,8 +15,27 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(FireBlock.class)
 public class FireBlockMixin {
-    @Inject(method = "checkBurnOut", at = @At("HEAD"), cancellable = true)
-    private void goml_preventFire(Level world, BlockPos pos, int spreadFactor, RandomSource random, int currentAge, CallbackInfo ci) {
+    @Inject(
+            method = "checkBurnOut(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;ILnet/minecraft/util/RandomSource;I)V",
+            at = @At("HEAD"),
+            cancellable = true,
+            require = 0
+    )
+    private void goml_preventFire26_2(Level world, BlockPos pos, int spreadFactor, RandomSource random, int currentAge, CallbackInfo ci) {
+        goml_cancelFireInClaim(world, pos, ci);
+    }
+
+    @Inject(
+            method = "checkBurnOut(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;ILnet/minecraft/util/RandomSource;Lnet/minecraft/core/Direction;)V",
+            at = @At("HEAD"),
+            cancellable = true,
+            require = 0
+    )
+    private void goml_preventFire26_1(Level world, BlockPos pos, int spreadFactor, RandomSource random, Direction direction, CallbackInfo ci) {
+        goml_cancelFireInClaim(world, pos, ci);
+    }
+
+    private static void goml_cancelFireInClaim(Level world, BlockPos pos, CallbackInfo ci) {
         if (world.isClientSide()) {
             return;
         }

@@ -32,7 +32,7 @@ public class ClaimAnchorBlockEntity extends BlockEntity {
     private ClaimBox box;
 
     public ClaimAnchorBlockEntity(BlockPos pos, BlockState state) {
-        super(GOMLEntities.CLAIM_ANCHOR, pos, state);
+        super(GOMLEntities.CLAIM_ANCHOR.get(), pos, state);
     }
 
     public static <T extends BlockEntity> void tick(Level eWorld, BlockPos pos, BlockState state, T blockEntity) {

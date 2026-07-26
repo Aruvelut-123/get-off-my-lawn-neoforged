@@ -70,7 +70,7 @@ public class ClaimAugmentBlock extends Block implements Augment, EntityBlock, He
     @Override
     public InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player playerEntity, BlockHitResult hit) {
         if (playerEntity instanceof ServerPlayer player && this.hasSettings()) {
-            var blockEntity = world.getBlockEntity(pos, GOMLEntities.CLAIM_AUGMENT);
+            var blockEntity = world.getBlockEntity(pos, GOMLEntities.CLAIM_AUGMENT.get());
 
             if (blockEntity.isPresent() && blockEntity.get().getClaim() != null) {
                 var claim = blockEntity.get().getClaim();

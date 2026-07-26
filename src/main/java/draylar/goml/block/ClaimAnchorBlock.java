@@ -103,7 +103,7 @@ public class ClaimAnchorBlock extends Block implements EntityBlock, HeadTextureP
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player playerEntity, BlockHitResult hit) {
         if (playerEntity instanceof ServerPlayer player && !player.isShiftKeyDown() && !(player.getMainHandItem().getItem() instanceof UpgradeKitItem)) {
-            var blockEntity = world.getBlockEntity(pos, GOMLEntities.CLAIM_ANCHOR);
+            var blockEntity = world.getBlockEntity(pos, GOMLEntities.CLAIM_ANCHOR.get());
             blockEntity.ifPresent(claimAnchorBlockEntity -> claimAnchorBlockEntity.getClaim().openUi(player));
 
             return InteractionResult.SUCCESS;

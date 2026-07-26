@@ -1,4 +1,5 @@
 import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
 
 plugins {
     id 'java-library'
@@ -71,43 +72,25 @@ neoForge {
 
 configurations {
     runtimeClasspath.extendsFrom localRuntime
+    embeddedLibraries
+    compileOnly.extendsFrom embeddedLibraries
 }
 
 dependencies {
-    jarJar(implementation(group: 'com.jamieswhiteshirt', name: 'rtree-3i-lite-fabric') {
+    embeddedLibraries(group: 'com.jamieswhiteshirt', name: 'rtree-3i-lite-fabric', version: project.rtree_version) {
         transitive = false
-    }) {
-        version {
-            strictly "[${project.rtree_version},0.4.0)"
-            prefer project.rtree_version
-        }
     }
 
-    // These PB4 libraries are loader-neutral implementations built entirely on
-    // vanilla server primitives. Bundle them so modpacks do not need Fabric jars.
-    jarJar(implementation(group: 'eu.pb4', name: 'sgui') {
+    // These PB4 libraries use vanilla server primitives. Merge them into the mod
+    // output so NeoForge transforms their Minecraft references with GOML's code.
+    embeddedLibraries(group: 'eu.pb4', name: 'sgui', version: project.sgui_version) {
         transitive = false
-    }) {
-        version {
-            strictly "[${project.sgui_version},3.0.0)"
-            prefer project.sgui_version
-        }
     }
-    jarJar(implementation(group: 'eu.pb4', name: 'placeholder-api') {
+    embeddedLibraries(group: 'eu.pb4', name: 'placeholder-api', version: project.placeholder_version) {
         transitive = false
-    }) {
-        version {
-            strictly "[${project.placeholder_version},4.0.0)"
-            prefer project.placeholder_version
-        }
     }
-    jarJar(implementation(group: 'eu.pb4', name: 'common-protection-api') {
+    embeddedLibraries(group: 'eu.pb4', name: 'common-protection-api', version: project.common_protection_api_version) {
         transitive = false
-    }) {
-        version {
-            strictly "[${project.common_protection_api_version},3.0.0)"
-            prefer project.common_protection_api_version
-        }
     }
 
     // Optional web-map integrations. Their APIs are loader-neutral.
@@ -136,6 +119,46 @@ def generateModMetadata = tasks.register('generateModMetadata', ProcessResources
 
 sourceSets.main.resources.srcDir generateModMetadata
 neoForge.ideSyncTask generateModMetadata
+
+def extractEmbeddedSguiResources = tasks.register('extractEmbeddedSguiResources', Sync) {
+    from {
+        configurations.embeddedLibraries.collect { zipTree(it) }
+    }
+    include 'sgui.mixins.json'
+    into layout.buildDirectory.dir('generated/resources/embeddedSgui')
+
+    doLast {
+        // SGUI targets vanilla/Fabric method bodies. NeoForge adds overloads and
+        // redirects in a few of those methods; keep compatible injections active
+        // while treating the loader-specific optional injections as best effort.
+        def mixinFile = destinationDir.toPath().resolve('sgui.mixins.json').toFile()
+        def mixinConfig = new JsonSlurper().parse(mixinFile)
+        mixinConfig.injectors = (mixinConfig.injectors ?: [:]) + [defaultRequire: 0]
+        mixinFile.text = JsonOutput.prettyPrint(JsonOutput.toJson(mixinConfig)) + System.lineSeparator()
+    }
+}
+
+sourceSets.main.resources.srcDir extractEmbeddedSguiResources
+neoForge.ideSyncTask extractEmbeddedSguiResources
+
+def extractEmbeddedLibraries = tasks.register('extractEmbeddedLibraries', Sync) {
+    from {
+        configurations.embeddedLibraries.collect { zipTree(it) }
+    }
+    exclude 'META-INF/**'
+    exclude 'fabric.mod.json'
+    exclude '*.accesswidener'
+    exclude '*.mixins.json'
+    exclude 'icon.png'
+    exclude 'assets/icon.png'
+    exclude 'eu/pb4/placeholders/impl/LoaderUtil.class'
+    exclude 'eu/pb4/placeholders/impl/placeholder/builtin/ServerPlaceholders.class'
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    into layout.buildDirectory.dir('generated/embeddedLibraries')
+}
+
+sourceSets.main.output.dir extractEmbeddedLibraries
+neoForge.ideSyncTask extractEmbeddedLibraries
 
 def nativeBlockTextures = [
         makeshift_claim_anchor  : 'makeshift_claim_anchor',
@@ -261,10 +284,6 @@ tasks.named('jar', Jar).configure {
                 'Implementation-Vendor': project.mod_authors
         )
     }
-}
-
-tasks.named('assemble').configure {
-    dependsOn tasks.named('jarJar')
 }
 
 publishing {

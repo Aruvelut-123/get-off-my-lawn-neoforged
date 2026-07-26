@@ -30,7 +30,7 @@ public class ClaimAugmentBlockEntity extends BlockEntity {
     private Claim claim;
 
     public ClaimAugmentBlockEntity(BlockPos pos, BlockState state) {
-        super(GOMLEntities.CLAIM_AUGMENT, pos, state);
+        super(GOMLEntities.CLAIM_AUGMENT.get(), pos, state);
     }
 
     public static <T extends BlockEntity> void tick(Level world, BlockPos pos, BlockState state, T baseBlockEntity) {
