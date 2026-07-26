@@ -18,6 +18,7 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
 repositories {
     mavenCentral()
+    maven { url = 'https://maven.nucleoid.xyz/' }
     maven { url = 'https://maven.jamieswhiteshirt.com/libs-release/' }
     maven { url = 'https://repo.bluecolored.de/releases' }
     maven { url = 'https://repo.mikeprimm.com/' }
@@ -75,7 +76,33 @@ configurations {
 }
 
 dependencies {
-    implementation "com.jamieswhiteshirt:rtree-3i-lite-fabric:${project.rtree_version}"
+    jarJar(implementation(group: 'com.jamieswhiteshirt', name: 'rtree-3i-lite-fabric')) {
+        version {
+            strictly "[${project.rtree_version},${project.rtree_version}]"
+            prefer project.rtree_version
+        }
+    }
+
+    // These PB4 libraries are loader-neutral implementations built entirely on
+    // vanilla server primitives. Bundle them so modpacks do not need Fabric jars.
+    jarJar(implementation(group: 'eu.pb4', name: 'sgui')) {
+        version {
+            strictly "[${project.sgui_version},${project.sgui_version}]"
+            prefer project.sgui_version
+        }
+    }
+    jarJar(implementation(group: 'eu.pb4', name: 'placeholder-api')) {
+        version {
+            strictly "[${project.placeholder_version},${project.placeholder_version}]"
+            prefer project.placeholder_version
+        }
+    }
+    jarJar(implementation(group: 'eu.pb4', name: 'common-protection-api')) {
+        version {
+            strictly "[${project.common_protection_api_version},${project.common_protection_api_version}]"
+            prefer project.common_protection_api_version
+        }
+    }
 
     // Optional web-map integrations. Their APIs are loader-neutral.
     compileOnly "us.dynmap:DynmapCoreAPI:${project.dynmap_version}"
@@ -128,6 +155,10 @@ tasks.named('jar', Jar).configure {
                 'Implementation-Vendor': project.mod_authors
         )
     }
+}
+
+tasks.named('assemble').configure {
+    dependsOn tasks.named('jarJar')
 }
 
 publishing {
