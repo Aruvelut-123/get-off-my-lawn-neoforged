@@ -1,3 +1,5 @@
+import groovy.json.JsonOutput
+
 plugins {
     id 'java-library'
     id 'maven-publish'
@@ -67,10 +69,6 @@ neoForge {
     }
 }
 
-sourceSets.main.resources {
-    srcDir 'src/generated/resources'
-}
-
 configurations {
     runtimeClasspath.extendsFrom localRuntime
 }
@@ -129,6 +127,105 @@ def generateModMetadata = tasks.register('generateModMetadata', ProcessResources
 
 sourceSets.main.resources.srcDir generateModMetadata
 neoForge.ideSyncTask generateModMetadata
+
+def nativeBlockTextures = [
+        makeshift_claim_anchor  : 'makeshift_claim_anchor',
+        reinforced_claim_anchor : 'reinforced_claim_anchor',
+        glistening_claim_anchor : 'glistering_claim_anchor',
+        crystal_claim_anchor    : 'crystal_claim_anchor',
+        emeradic_claim_anchor   : 'emeradic_claim_anchor',
+        withered_claim_anchor   : 'withered_claim_anchor',
+        admin_claim_anchor      : 'admin_claim_anchor',
+        ender_binding           : 'ender_binding',
+        lake_spirit_grace       : 'lake_grace_spirit',
+        angelic_aura            : 'angelic_aura',
+        heaven_wings            : 'heaven_wings',
+        village_core            : 'village_core',
+        withering_seal          : 'withering_seal',
+        chaos_zone              : 'chaos_zone',
+        pvp_arena               : 'pvp_arena',
+        explosion_controller    : 'explosion_controller',
+        force_field             : 'force_field'
+]
+
+def nativeItemModels = [
+        reinforced_upgrade_kit: 'minecraft:item/iron_ingot',
+        glistening_upgrade_kit: 'minecraft:item/gold_ingot',
+        crystal_upgrade_kit   : 'minecraft:item/diamond',
+        emeradic_upgrade_kit  : 'minecraft:item/emerald',
+        withered_upgrade_kit  : 'minecraft:item/nether_star',
+        goggles               : 'minecraft:item/iron_helmet'
+]
+
+def nativeClientResources = tasks.register('generateNativeClientResources') {
+    def outputDirectory = layout.buildDirectory.dir('generated/resources/nativeClient')
+    outputs.dir outputDirectory
+    inputs.files nativeBlockTextures.values().collect { file("assets/${it}.png") }
+    inputs.property 'nativeBlockTextures', nativeBlockTextures
+    inputs.property 'nativeItemModels', nativeItemModels
+
+    doLast {
+        def outputRoot = outputDirectory.get().asFile
+
+        nativeBlockTextures.each { blockName, sourceName ->
+            def blockState = [
+                    variants: [
+                            '': [model: "${project.mod_id}:block/${blockName}"]
+                    ]
+            ]
+            def blockModel = [
+                    parent  : 'minecraft:block/cube_all',
+                    textures: [all: "${project.mod_id}:block/${blockName}"]
+            ]
+            def itemDefinition = [
+                    model: [
+                            type : 'minecraft:model',
+                            model: "${project.mod_id}:block/${blockName}"
+                    ]
+            ]
+
+            def blockStateFile = new File(outputRoot, "assets/${project.mod_id}/blockstates/${blockName}.json")
+            def blockModelFile = new File(outputRoot, "assets/${project.mod_id}/models/block/${blockName}.json")
+            def itemFile = new File(outputRoot, "assets/${project.mod_id}/items/${blockName}.json")
+            [blockStateFile, blockModelFile, itemFile].each { it.parentFile.mkdirs() }
+            blockStateFile.text = JsonOutput.prettyPrint(JsonOutput.toJson(blockState))
+            blockModelFile.text = JsonOutput.prettyPrint(JsonOutput.toJson(blockModel))
+            itemFile.text = JsonOutput.prettyPrint(JsonOutput.toJson(itemDefinition))
+
+            copy {
+                from file("assets/${sourceName}.png")
+                into new File(outputRoot, "assets/${project.mod_id}/textures/block")
+                rename { "${blockName}.png" }
+            }
+        }
+
+        // Greeter has no standalone icon in the original repository.
+        def greeterBlockState = new File(outputRoot, "assets/${project.mod_id}/blockstates/greeter.json")
+        def greeterBlockModel = new File(outputRoot, "assets/${project.mod_id}/models/block/greeter.json")
+        def greeterItem = new File(outputRoot, "assets/${project.mod_id}/items/greeter.json")
+        [greeterBlockState, greeterBlockModel, greeterItem].each { it.parentFile.mkdirs() }
+        greeterBlockState.text = JsonOutput.prettyPrint(JsonOutput.toJson(
+                [variants: ['': [model: "${project.mod_id}:block/greeter"]]]
+        ))
+        greeterBlockModel.text = JsonOutput.prettyPrint(JsonOutput.toJson(
+                [parent: 'minecraft:block/cube_all', textures: [all: 'minecraft:block/emerald_block']]
+        ))
+        greeterItem.text = JsonOutput.prettyPrint(JsonOutput.toJson(
+                [model: [type: 'minecraft:model', model: "${project.mod_id}:block/greeter"]]
+        ))
+
+        nativeItemModels.each { itemName, vanillaModel ->
+            def itemFile = new File(outputRoot, "assets/${project.mod_id}/items/${itemName}.json")
+            itemFile.parentFile.mkdirs()
+            itemFile.text = JsonOutput.prettyPrint(JsonOutput.toJson(
+                    [model: [type: 'minecraft:model', model: vanillaModel]]
+            ))
+        }
+    }
+}
+
+sourceSets.main.resources.srcDir nativeClientResources
+neoForge.ideSyncTask nativeClientResources
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
