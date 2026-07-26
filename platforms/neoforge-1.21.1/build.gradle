@@ -123,7 +123,24 @@ dependencies {
 
 def remapMinecraftIntermediary = tasks.register('remapMinecraftIntermediary', RemapJarTask) {
     dependsOn tasks.named('downloadAssets')
-    inputFile.set(loom.minecraftMergedProvider)
+    inputFile.set(layout.file(provider {
+        // 【核心修复】获取真正的仓库根目录（当前子模块的上一级）
+        def rootRepoDir = rootProject.projectDir.parentFile 
+        def cacheDir = file("${rootRepoDir}/.gradle/loom-cache")
+        
+        // 递归搜索整个 loom-cache 目录，不再限制死在 minecraftMaven 子目录
+        def matches = fileTree(cacheDir).files.findAll {
+            it.name.contains('minecraft') && 
+            it.name.contains('merged') && 
+            it.name.endsWith('.jar') && 
+            !it.name.endsWith('-sources.jar')
+        }
+        
+        if (matches.size() != 1) {
+            throw new GradleException("Expected one named Minecraft jar, found ${matches.size()}. Matches: ${matches*.name}")
+        }
+        matches.first()
+    }))
     archiveFileName.set("minecraft-${project.minecraft_version}-intermediary.jar")
     destinationDirectory.set(layout.buildDirectory.dir('intermediaryClasspath'))
     sourceNamespace.set('named')
