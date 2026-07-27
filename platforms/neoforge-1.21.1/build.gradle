@@ -1,6 +1,7 @@
 import net.fabricmc.loom.task.RemapJarTask
 import net.fabricmc.mappingio.MappingReader
 import net.fabricmc.mappingio.tree.MemoryMappingTree
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import java.awt.image.BufferedImage
@@ -122,22 +123,22 @@ dependencies {
 }
 
 def remapMinecraftIntermediary = tasks.register('remapMinecraftIntermediary', RemapJarTask) {
-    dependsOn tasks.named('downloadAssets')
     inputFile.set(layout.file(provider {
-        // 【核心修复】获取真正的仓库根目录（当前子模块的上一级）
-        def rootRepoDir = rootProject.projectDir.parentFile 
-        def cacheDir = file("${rootRepoDir}/.gradle/loom-cache")
-        
-        // 递归搜索整个 loom-cache 目录，不再限制死在 minecraftMaven 子目录
-        def matches = fileTree(cacheDir).files.findAll {
-            it.name.contains('minecraft') && 
-            it.name.contains('merged') && 
-            it.name.endsWith('.jar') && 
-            !it.name.endsWith('-sources.jar')
-        }
-        
+        def matches = configurations.getByName('minecraftNamedCompile')
+                .incoming
+                .artifactView {
+                    componentFilter { componentId ->
+                        componentId instanceof ModuleComponentIdentifier &&
+                                componentId.group == 'net.minecraft'
+                    }
+                }
+                .files
+                .files
         if (matches.size() != 1) {
-            throw new GradleException("Expected one named Minecraft jar, found ${matches.size()}. Matches: ${matches*.name}")
+            throw new GradleException(
+                    "Expected one named Minecraft artifact from minecraftNamedCompile, " +
+                            "found ${matches.size()}: ${matches*.name}"
+            )
         }
         matches.first()
     }))
