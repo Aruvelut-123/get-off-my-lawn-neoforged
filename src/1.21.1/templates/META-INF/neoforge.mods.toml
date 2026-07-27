@@ -1,7 +1,7 @@
 modLoader="javafml"
 loaderVersion="${loader_version_range}"
 license="${mod_license}"
-issueTrackerURL="https://github.com/Patbox/get-off-my-lawn-reserved/issues"
+issueTrackerURL="https://github.com/Aruvelut-123/get-off-my-lawn-reserved/issues"
 
 [[mods]]
 modId="${mod_id}"
