@@ -1,74 +1,46 @@
 # Get Off My Lawn ReServed
 
-*Get Off My Lawn ReServed* is a player-claim mod for Survival/Freebuild NeoForge servers.
-It works fully server side, so players do not need to install it on their clients.
+*Get Off My Lawn ReServed* is a player-claim mod for Survival/Freebuild
+NeoForge servers and modpacks. The NeoForge port uses native registries and
+must be installed on both the server and every connecting client.
 
 This project is a fork of [Get Off My Lawn Reserved by Patbox](https://github.com/Patbox/get-off-my-lawn-reserved), with a focus on porting the mod to neoforge platform.
 
 ## Supported versions
 
-| Minecraft | NeoForge | Server runtime supplied in the release directory |
+| Minecraft | Tested NeoForge baseline | Required external mods |
 | --- | --- | --- |
-| 1.21.1 | **21.1.233 tested baseline; later 21.1.x accepted** | Connector `2.0.0-beta.14`, Forgified Fabric API `0.116.7+2.2.4` and GOML Polymer Runtime Bundle `0.9.19` |
-| 26.1 | NeoForge 26.1.0.19-beta or newer 26.1 build | Patched Polymer Neo `0.16.6-beta.8` |
-| 26.1.1 | NeoForge 26.1.1.15-beta or newer 26.1.1 build | Patched Polymer Neo `0.16.6-beta.8` |
-| 26.1.2 | NeoForge 26.1.2.87 or newer 26.1.2 build | Patched Polymer Neo `0.16.6-beta.8` |
+| 1.21.1 | 21.1.233 | None |
+| 26.1 | 26.1.0.19-beta | None |
+| 26.1.1 | 26.1.1.15-beta | None |
+| 26.1.2 | 26.1.2.87 | None |
 
-## Installation and required server mods
+The metadata accepts later NeoForge builds within the same Minecraft release
+line. They may work, but only the listed baseline is tested and compatibility
+is not guaranteed.
 
-Use only the directory matching the server's Minecraft version. Every required
-jar listed below is already collected into that build's release directory.
+## Installation and dependencies
 
-### Minecraft 1.21.1
+Install only the matching
+`goml-<mod-version>+<minecraft-version>+neoforge.jar` on both sides:
 
-Install these jars on the server:
+- the dedicated or integrated server; and
+- every client that connects to it.
 
-- `goml-<version>+1.21.1+neoforge.jar`
-- `connector-2.0.0-beta.14+1.21.1-full.jar`
-- `forgified-fabric-api-0.116.7+2.2.4+1.21.1.jar`
-- `polymer-goml-bundled-0.9.19+1.21.1.jar` (unless a compatible external
-  Polymer bundle is already installed)
+The client and server must use the same Minecraft-targeted GOML build. GOML has
+no required external mod dependencies on any supported version: do not install
+Connector, Forgified Fabric API, Polymer, or Packet Tweaker for GOML. If another
+mod independently requires one of them, follow that mod's instructions.
 
-Forgified Fabric Loader is contained in the full Forgified Fabric API jar, so
-do not add a second standalone copy unless another modpack component explicitly
-requires one. The GOML Polymer Runtime Bundle contains only Polymer Common and
-Core; those modules already contain Packet Tweaker, Networking and Registry
-Sync. Servers that already need the full Polymer Bundled mod may omit the GOML
-runtime bundle. The full bundle's additional modules are not required by GOML,
-however, and can create unrelated compatibility problems: Polymer Blocks can
-conflict with Connector beta.14/NeoForge transformations, while Polymer Virtual
-Entity conflicts with ByePregen 1.0.7 because both transform
-`ServerChunkCache.tickChunks`. When ByePregen is installed, remove the full
-Polymer bundle and use the supplied GOML runtime bundle. GOML logs an explicit
-warning when that incompatible combination is detected.
+Dynmap and BlueMap remain optional server-side integrations. Neither is
+required for GOML.
 
-### Minecraft 26.1, 26.1.1 and 26.1.2
-
-Install these jars on the server:
-
-- `goml-<version>+<minecraft-version>+neoforge.jar`
-- `polymer-bundled-neo-0.16.6-beta.8+26.1.2.jar`
-
-Dynmap and BlueMap are optional integrations and are not required for GOML.
-
-Install every jar from the matching release directory into the server's
-`mods` directory. Do not install GOML or these compatibility jars on ordinary
-clients. Polymer translates GOML's custom registry entries, skin-textured
-blocks and items to vanilla representations, preserving vanilla placement and
-breaking animation/sounds without requiring a client mod.
-
-The 1.21.1 build uses [Sinytra Connector](https://github.com/Sinytra/Connector)
-and [Forgified Fabric API](https://github.com/Sinytra/ForgifiedFabricAPI) to
-run the Fabric Polymer line on NeoForge. NeoForge 21.1.233, Connector
-2.0.0-beta.14 and Forgified Fabric API 0.116.7+2.2.4 are the tested baseline.
-The metadata accepts later NeoForge 21.1.x builds; newer Connector/FFAPI builds
-for Minecraft 1.21.1 may also work, but neither combination is guaranteed.
-Polymer 0.9.19 prints an upstream warning that Connector/Forge is unsupported;
-the GOML bootstrap path has been validated, but client visuals and large-modpack
-interoperability should be tested before deployment. The 1.21.1 build includes
-an early-bootstrap compatibility workaround for KubeJS 2101.7.2. The 26.1.x
-builds use the audited
-[Polymer Neo port](https://codeberg.org/tomalbrc/polymer-neo).
+The original `goml:*` registry IDs are retained for world compatibility, while
+the NeoForge build now registers blocks, items and block entities natively.
+Claim blocks use generated native models based on the original skin textures
+and standard block sounds, placement feedback and breaking animations. Back up
+existing worlds before changing builds and test the result in the target
+modpack.
 
 Release files use the format
 `<mod-version>+<minecraft-version>+neoforge`, for example
@@ -199,10 +171,9 @@ Use PowerShell 7 and the included Gradle wrapper. Java 21 is used for the
 ```
 
 Collected release jars are written to
-`build/multiversion/<minecraft-version>/`. Each directory contains GOML, its
-required server-side runtime jars, the third-party notices, all applicable
-license texts, and the modified Polymer Neo source patch. The build and release
-workflows use the same version profiles.
+`build/multiversion/<minecraft-version>/`. Each directory contains the single
+matching GOML jar, third-party notices and all applicable license texts. The
+build and release workflows use the same version profiles.
 
 GitHub Actions caches both Gradle's shared dependency state and the
 version-specific Minecraft/NeoForge workspace for all four targets. A missing
@@ -222,7 +193,4 @@ local compile and dedicated-server validation.
 Embedded, distributed, and optional compile-only third-party components are
 listed individually in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 Complete license texts and a reverse component mapping are in
-[`third_party/licenses/`](third_party/licenses/). The locally patched Polymer
-Neo bundle includes its exact upstream revision, checksum, rebuild instructions
-and corresponding source patch in
-[`third_party/polymer-neo/`](third_party/polymer-neo/).
+[`third_party/licenses/`](third_party/licenses/).
