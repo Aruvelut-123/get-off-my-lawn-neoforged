@@ -9,10 +9,47 @@ This project is a fork of [Get Off My Lawn Reserved by Patbox](https://github.co
 
 | Minecraft | NeoForge | Server runtime supplied in the release directory |
 | --- | --- | --- |
-| 1.21.1 | **21.1.233** | Connector `2.0.0-beta.15`, Forgified Fabric API `0.116.7`, Polymer `0.9.19` and resolved Polymer runtime modules |
+| 1.21.1 | **21.1.233 tested baseline; later 21.1.x accepted** | Connector `2.0.0-beta.14`, Forgified Fabric API `0.116.7+2.2.4` and GOML Polymer Runtime Bundle `0.9.19` |
 | 26.1 | NeoForge 26.1.0.19-beta or newer 26.1 build | Patched Polymer Neo `0.16.6-beta.8` |
 | 26.1.1 | NeoForge 26.1.1.15-beta or newer 26.1.1 build | Patched Polymer Neo `0.16.6-beta.8` |
 | 26.1.2 | NeoForge 26.1.2.87 or newer 26.1.2 build | Patched Polymer Neo `0.16.6-beta.8` |
+
+## Installation and required server mods
+
+Use only the directory matching the server's Minecraft version. Every required
+jar listed below is already collected into that build's release directory.
+
+### Minecraft 1.21.1
+
+Install these jars on the server:
+
+- `goml-<version>+1.21.1+neoforge.jar`
+- `connector-2.0.0-beta.14+1.21.1-full.jar`
+- `forgified-fabric-api-0.116.7+2.2.4+1.21.1.jar`
+- `polymer-goml-bundled-0.9.19+1.21.1.jar` (unless a compatible external
+  Polymer bundle is already installed)
+
+Forgified Fabric Loader is contained in the full Forgified Fabric API jar, so
+do not add a second standalone copy unless another modpack component explicitly
+requires one. The GOML Polymer Runtime Bundle contains only Polymer Common and
+Core; those modules already contain Packet Tweaker, Networking and Registry
+Sync. Servers that already need the full Polymer Bundled mod may omit the GOML
+runtime bundle. The full bundle's additional modules are not required by GOML,
+however, and can create unrelated compatibility problems: Polymer Blocks can
+conflict with Connector beta.14/NeoForge transformations, while Polymer Virtual
+Entity conflicts with ByePregen 1.0.7 because both transform
+`ServerChunkCache.tickChunks`. When ByePregen is installed, remove the full
+Polymer bundle and use the supplied GOML runtime bundle. GOML logs an explicit
+warning when that incompatible combination is detected.
+
+### Minecraft 26.1, 26.1.1 and 26.1.2
+
+Install these jars on the server:
+
+- `goml-<version>+<minecraft-version>+neoforge.jar`
+- `polymer-bundled-neo-0.16.6-beta.8+26.1.2.jar`
+
+Dynmap and BlueMap are optional integrations and are not required for GOML.
 
 Install every jar from the matching release directory into the server's
 `mods` directory. Do not install GOML or these compatibility jars on ordinary
@@ -22,10 +59,15 @@ breaking animation/sounds without requiring a client mod.
 
 The 1.21.1 build uses [Sinytra Connector](https://github.com/Sinytra/Connector)
 and [Forgified Fabric API](https://github.com/Sinytra/ForgifiedFabricAPI) to
-run the Fabric Polymer line on NeoForge 21.1.233. Polymer 0.9.19 prints an
-upstream warning that Connector/Forge is unsupported; dedicated-server startup
-has been validated, but client visuals and large-modpack interoperability
-should be tested before deployment. The 26.1.x builds use the audited
+run the Fabric Polymer line on NeoForge. NeoForge 21.1.233, Connector
+2.0.0-beta.14 and Forgified Fabric API 0.116.7+2.2.4 are the tested baseline.
+The metadata accepts later NeoForge 21.1.x builds; newer Connector/FFAPI builds
+for Minecraft 1.21.1 may also work, but neither combination is guaranteed.
+Polymer 0.9.19 prints an upstream warning that Connector/Forge is unsupported;
+the GOML bootstrap path has been validated, but client visuals and large-modpack
+interoperability should be tested before deployment. The 1.21.1 build includes
+an early-bootstrap compatibility workaround for KubeJS 2101.7.2. The 26.1.x
+builds use the audited
 [Polymer Neo port](https://codeberg.org/tomalbrc/polymer-neo).
 
 Release files use the format

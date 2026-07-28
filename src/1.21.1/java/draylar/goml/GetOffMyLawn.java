@@ -92,6 +92,13 @@ public final class GetOffMyLawn {
         NeoForge.EVENT_BUS.addListener(this::onChunkUnload);
 
         CardboardWarning.checkAndAnnounce();
+        if (ModList.get().isLoaded("polymer_virtual_entity")
+                && ModList.get().isLoaded("byepregen")) {
+            LOGGER.error("Full Polymer and ByePregen were detected together. "
+                    + "Polymer Virtual Entity 0.9.19 conflicts with ByePregen 1.0.7 "
+                    + "in ServerChunkCache.tickChunks. Remove the external full "
+                    + "Polymer bundle and use GOML's supplied minimal Polymer runtime.");
+        }
         if (ModList.get().isLoaded("argonauts")) {
             ArgonautsCompat.init();
         }

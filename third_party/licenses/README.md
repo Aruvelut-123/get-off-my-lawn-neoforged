@@ -17,8 +17,9 @@ same mapping in component-first form.
 
 - Server GUI 1.6.1+1.21.1 and 2.0.0+26.1 — embedded
 - Placeholder API 2.4.2+1.21 and 3.0.0+26.1 — embedded
-- Polymer Core/Common/Networking 0.9.19+1.21.1 — distributed with Minecraft
-  1.21.1
+- GOML Polymer Runtime Bundle 0.9.19+1.21.1, containing Polymer Common and
+  Core plus their nested Networking and Packet Tweaker runtimes — distributed
+  with Minecraft 1.21.1
 - Packet Tweaker 0.5.6+1.21 — transitive runtime distributed with Minecraft
   1.21.1
 - Modified Polymer Neo bundle 0.16.6-beta.8+26.1.2 — distributed with
@@ -36,7 +37,7 @@ corresponds to every component listed under `LGPL-3.0-only.txt` above.
 ## `MIT.txt`
 
 - Common Protection API 1.0.0 and 2.0.0 — embedded
-- Sinytra Connector 2.0.0-beta.15+1.21.1 — distributed with Minecraft 1.21.1
+- Sinytra Connector 2.0.0-beta.14+1.21.1 — distributed with Minecraft 1.21.1
 - Polymer Registry Sync Manipulator 0.9.19+1.21.1 — distributed with
   Minecraft 1.21.1
 - Polymer Neo Registry Sync Manipulator 0.16.6-beta.8+26.1.2 — included in the

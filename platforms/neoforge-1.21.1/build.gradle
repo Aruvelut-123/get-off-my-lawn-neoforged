@@ -78,6 +78,8 @@ configurations {
     placeholderIntermediary
     commonProtectionIntermediary
     polymerIntermediary
+    polymerBundleUpstream
+    polymerBundleComponents
     serverDistribution
 }
 
@@ -111,21 +113,26 @@ dependencies {
     }
 
     // Development/server smoke-test runtime for the Fabric Polymer build.
-    // Release users install the same three jars next to GOML.
+    // Release users install the generated minimal Polymer bundle next to GOML.
     localRuntime "org.sinytra.forgified-fabric-api:forgified-fabric-api:${project.ffapi_version}"
     // Connector is a ModLauncher transformation service, so it must be placed
     // on the loader/runtime-library path before NeoForge scans ordinary mods.
     forgeRuntimeLibrary "org.sinytra:connector:${project.connector_version}:full"
-    localRuntime "eu.pb4:polymer-core:${project.polymer_version}"
-
     serverDistribution("org.sinytra.forgified-fabric-api:forgified-fabric-api:${project.ffapi_version}") {
         transitive = false
     }
     serverDistribution("org.sinytra:connector:${project.connector_version}:full") {
         transitive = false
     }
-    serverDistribution("eu.pb4:polymer-core:${project.polymer_version}")
-
+    polymerBundleUpstream("eu.pb4:polymer-bundled:${project.polymer_version}") {
+        transitive = false
+    }
+    polymerBundleComponents("eu.pb4:polymer-core:${project.polymer_version}") {
+        transitive = false
+    }
+    polymerBundleComponents("eu.pb4:polymer-common:${project.polymer_version}") {
+        transitive = false
+    }
     rtreeEmbedded("com.jamieswhiteshirt:rtree-3i-lite-fabric:${project.rtree_version}") {
         transitive = false
     }
@@ -216,8 +223,70 @@ dependencies {
     compileOnly files(remapPolymer.flatMap { it.archiveFile })
 }
 
+def generateLegacyPolymerBundleMetadata = tasks.register('generateLegacyPolymerBundleMetadata') {
+    def outputFile = layout.buildDirectory.file('generated/polymer-goml-bundle/fabric.mod.json')
+    outputs.file outputFile
+
+    doLast {
+        def metadata = [
+                schemaVersion: 1,
+                id           : 'polymer-bundled',
+                version      : project.polymer_version,
+                name         : 'Polymer (GOML runtime bundle)',
+                description  : 'Minimal Polymer runtime bundle for GOML on NeoForge through Connector.',
+                authors      : ['Patbox'],
+                contributors : ['aws404'],
+                contact      : [
+                        homepage: 'https://pb4.eu',
+                        sources : 'https://github.com/Patbox/polymer',
+                        issues  : 'https://github.com/Patbox/polymer/issues'
+                ],
+                license      : 'LGPLv3',
+                environment  : '*',
+                jars         : configurations.polymerBundleComponents.files
+                        .sort { it.name }
+                        .collect { [file: "META-INF/jars/${it.name}"] }
+        ]
+        def file = outputFile.get().asFile
+        file.parentFile.mkdirs()
+        file.text = JsonOutput.prettyPrint(JsonOutput.toJson(metadata)) + System.lineSeparator()
+    }
+}
+
+def bundleLegacyPolymer = tasks.register('bundleLegacyPolymer', Jar) {
+    dependsOn generateLegacyPolymerBundleMetadata
+    archiveFileName.set("polymer-goml-bundled-${project.polymer_version}.jar")
+    destinationDirectory.set(layout.buildDirectory.dir('polymer-distribution'))
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    from {
+        configurations.polymerBundleUpstream.collect { zipTree(it) }
+    } {
+        exclude 'fabric.mod.json'
+        exclude 'META-INF/jars/**'
+    }
+    from(generateLegacyPolymerBundleMetadata.map {
+        layout.buildDirectory.file('generated/polymer-goml-bundle/fabric.mod.json')
+    })
+    from(configurations.polymerBundleComponents) {
+        into 'META-INF/jars'
+    }
+    from('../../THIRD_PARTY_NOTICES.md') {
+        into 'META-INF'
+    }
+    from('../../third_party/licenses') {
+        into 'META-INF/licenses'
+    }
+}
+
+dependencies {
+    localRuntime files(bundleLegacyPolymer.flatMap { it.archiveFile })
+}
+
 def collectServerDependencies = tasks.register('collectServerDependencies', Sync) {
+    dependsOn bundleLegacyPolymer
     from configurations.serverDistribution
+    from bundleLegacyPolymer.flatMap { it.archiveFile }
     into layout.buildDirectory.dir('server-dependencies')
 }
 
