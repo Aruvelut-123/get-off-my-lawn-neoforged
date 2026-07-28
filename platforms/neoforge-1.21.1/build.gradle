@@ -78,6 +78,7 @@ configurations {
     placeholderIntermediary
     commonProtectionIntermediary
     polymerIntermediary
+    serverDistribution
 }
 
 repositories {
@@ -112,8 +113,21 @@ dependencies {
     // Development/server smoke-test runtime for the Fabric Polymer build.
     // Release users install the same three jars next to GOML.
     localRuntime "org.sinytra.forgified-fabric-api:forgified-fabric-api:${project.ffapi_version}"
-    localRuntime "org.sinytra:connector:${project.connector_version}:full"
+    // Connector is a ModLauncher transformation service, so it must be placed
+    // on the loader/runtime-library path before NeoForge scans ordinary mods.
+    forgeRuntimeLibrary "org.sinytra:connector:${project.connector_version}:full"
     localRuntime "eu.pb4:polymer-core:${project.polymer_version}"
+
+    serverDistribution("org.sinytra.forgified-fabric-api:forgified-fabric-api:${project.ffapi_version}") {
+        transitive = false
+    }
+    serverDistribution("org.sinytra:forgified-fabric-loader:${project.ffloader_version}:full") {
+        transitive = false
+    }
+    serverDistribution("org.sinytra:connector:${project.connector_version}:full") {
+        transitive = false
+    }
+    serverDistribution("eu.pb4:polymer-core:${project.polymer_version}")
 
     rtreeEmbedded("com.jamieswhiteshirt:rtree-3i-lite-fabric:${project.rtree_version}") {
         transitive = false
@@ -203,6 +217,11 @@ dependencies {
     compileOnly files(remapPlaceholder.flatMap { it.archiveFile })
     compileOnly files(remapCommonProtection.flatMap { it.archiveFile })
     compileOnly files(remapPolymer.flatMap { it.archiveFile })
+}
+
+def collectServerDependencies = tasks.register('collectServerDependencies', Sync) {
+    from configurations.serverDistribution
+    into layout.buildDirectory.dir('server-dependencies')
 }
 
 def generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
@@ -496,6 +515,10 @@ tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
     options.release = project.java_version as int
     options.compilerArgs += ['-Xmaxerrs', '1000']
+}
+
+tasks.named('assemble').configure {
+    dependsOn collectServerDependencies
 }
 
 tasks.named('processResources', ProcessResources).configure {

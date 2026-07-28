@@ -77,5 +77,12 @@ if ($Task -in @('build', 'assemble')) {
     }
 
     $artifacts | Copy-Item -Destination $artifactDirectory -Force
+
+    $dependencyDirectory = Join-Path $projectDirectory 'build/server-dependencies'
+    if (Test-Path -LiteralPath $dependencyDirectory -PathType Container) {
+        Get-ChildItem -LiteralPath $dependencyDirectory -Filter '*.jar' |
+                Copy-Item -Destination $artifactDirectory -Force
+    }
+
     Write-Host "Artifacts successfully copied to: $artifactDirectory"
 }

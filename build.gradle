@@ -100,6 +100,11 @@ def extractPolymerNeoApi = tasks.register('extractPolymerNeoApi', Sync) {
     into layout.buildDirectory.dir('polymer-neo-api')
 }
 
+def collectServerDependencies = tasks.register('collectServerDependencies', Sync) {
+    from polymerNeoBundle
+    into layout.buildDirectory.dir('server-dependencies')
+}
+
 dependencies {
     if (project.findProperty('ffapi_version')) {
         implementation "org.sinytra.forgified-fabric-api:forgified-fabric-api:${project.ffapi_version}"
@@ -350,6 +355,10 @@ neoForge.ideSyncTask nativeClientResources
 tasks.withType(JavaCompile).configureEach {
     dependsOn extractPolymerNeoApi
     options.encoding = 'UTF-8'
+}
+
+tasks.named('assemble').configure {
+    dependsOn collectServerDependencies
 }
 
 tasks.withType(ProcessResources).configureEach {

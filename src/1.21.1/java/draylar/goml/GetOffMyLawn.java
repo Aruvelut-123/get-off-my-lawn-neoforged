@@ -19,7 +19,6 @@ import draylar.goml.registry.GOMLItems;
 import eu.pb4.common.protection.api.CommonProtection;
 import eu.pb4.polymer.core.api.item.PolymerItemGroupUtils;
 import net.minecraft.core.SectionPos;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -31,7 +30,6 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.level.ChunkEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
@@ -39,7 +37,6 @@ import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
-import net.neoforged.neoforge.registries.DeferredRegister;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -60,9 +57,6 @@ public final class GetOffMyLawn {
     public static final List<Runnable> NEXT_TICK_TASK = new ArrayList<>();
     public static GOMLConfig CONFIG = new GOMLConfig();
 
-    private static final DeferredRegister<CreativeModeTab> CREATIVE_TABS =
-            DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MOD_ID);
-
     public static final CreativeModeTab GROUP = CreativeModeTab.builder()
             .title(Component.translatable("itemGroup.goml.group"))
             .icon(() -> new ItemStack(GOMLBlocks.WITHERED_CLAIM_ANCHOR.getSecond()))
@@ -73,17 +67,12 @@ public final class GetOffMyLawn {
             })
             .build();
 
-    static {
-        CREATIVE_TABS.register("group", () -> GROUP);
-    }
-
     public GetOffMyLawn(IEventBus modEventBus) {
         GOMLBlocks.register(modEventBus);
         GOMLItems.register(modEventBus);
         GOMLEntities.register(modEventBus);
         GOMLAttachments.register(modEventBus);
-        CREATIVE_TABS.register(modEventBus);
-        modEventBus.addListener(this::onCommonSetup);
+        PolymerItemGroupUtils.registerPolymerItemGroup(id("group"), GROUP);
 
         EventHandlers.register();
         ClaimCommand.register();
@@ -110,13 +99,6 @@ public final class GetOffMyLawn {
 
     public static ResourceLocation id(String name) {
         return ResourceLocation.fromNamespaceAndPath(MOD_ID, name);
-    }
-
-    private void onCommonSetup(FMLCommonSetupEvent event) {
-        event.enqueueWork(() -> {
-            GOMLEntities.registerPolymerBlockEntities();
-            PolymerItemGroupUtils.registerPolymerItemGroup(id("group"), GROUP);
-        });
     }
 
     private void onServerStarting(ServerStartingEvent event) {
