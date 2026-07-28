@@ -103,10 +103,6 @@ if ($Task -in @('build', 'assemble')) {
             -Destination $artifactDirectory -Force
     Copy-Item -LiteralPath (Join-Path $repositoryRoot 'third_party/licenses') `
             -Destination $artifactDirectory -Recurse -Force
-    Copy-Item -LiteralPath (Join-Path $repositoryRoot 'third_party/polymer-neo/README.md') `
-            -Destination (Join-Path $artifactDirectory 'POLYMER_NEO_SOURCE.md') -Force
-    Copy-Item -LiteralPath (Join-Path $repositoryRoot 'third_party/polymer-neo/polymer-neo-goml.patch') `
-            -Destination $artifactDirectory -Force
 
     Write-Host "Artifacts successfully copied to: $artifactDirectory"
 }

@@ -81,35 +81,11 @@ neoForge {
 }
 
 configurations {
-    runtimeClasspath.extendsFrom localRuntime
     embeddedLibraries
     compileOnly.extendsFrom embeddedLibraries
 }
 
-def polymerNeoBundle = layout.projectDirectory.file(
-        'third_party/polymer-neo/polymer-bundled-neo-0.16.6-beta.8+26.1.2.jar'
-)
-def extractPolymerNeoApi = tasks.register('extractPolymerNeoApi', Sync) {
-    from(zipTree(polymerNeoBundle)) {
-        include 'META-INF/jars/*.jar'
-        eachFile { details ->
-            details.path = details.name
-        }
-        includeEmptyDirs = false
-    }
-    into layout.buildDirectory.dir('polymer-neo-api')
-}
-
-def collectServerDependencies = tasks.register('collectServerDependencies', Sync) {
-    from polymerNeoBundle
-    into layout.buildDirectory.dir('server-dependencies')
-}
-
 dependencies {
-    if (project.findProperty('ffapi_version')) {
-        implementation "org.sinytra.forgified-fabric-api:forgified-fabric-api:${project.ffapi_version}"
-    }
-
     embeddedLibraries(group: 'com.jamieswhiteshirt', name: 'rtree-3i-lite-fabric', version: project.rtree_version) {
         transitive = false
     }
@@ -129,14 +105,6 @@ dependencies {
     // Optional web-map integrations. Their APIs are loader-neutral.
     compileOnly "us.dynmap:DynmapCoreAPI:${project.dynmap_version}"
     compileOnly "de.bluecolored:bluemap-api:${project.bluemap_version}"
-
-    // Polymer Neo is not published for the 26.1 line. Keep the exact audited
-    // bundle in-tree and expose its nested API jars only to javac.
-    compileOnly fileTree(layout.buildDirectory.dir('polymer-neo-api')) {
-        include '*.jar'
-        builtBy extractPolymerNeoApi
-    }
-    localRuntime files(polymerNeoBundle)
 }
 
 def generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
@@ -355,12 +323,7 @@ sourceSets.main.resources.srcDir nativeClientResources
 neoForge.ideSyncTask nativeClientResources
 
 tasks.withType(JavaCompile).configureEach {
-    dependsOn extractPolymerNeoApi
     options.encoding = 'UTF-8'
-}
-
-tasks.named('assemble').configure {
-    dependsOn collectServerDependencies
 }
 
 tasks.withType(ProcessResources).configureEach {

@@ -77,17 +77,12 @@ configurations {
     sguiIntermediary
     placeholderIntermediary
     commonProtectionIntermediary
-    polymerIntermediary
-    polymerBundleUpstream
-    polymerBundleComponents
-    serverDistribution
 }
 
 repositories {
     mavenCentral()
     maven { url = 'https://maven.neoforged.net/releases/' }
     maven { url = 'https://maven.quiltmc.org/repository/release/' }
-    maven { url = 'https://maven.su5ed.dev/releases' }
     maven { url = 'https://maven.nucleoid.xyz/' }
     maven { url = 'https://maven.jamieswhiteshirt.com/libs-release/' }
     maven { url = 'https://repo.bluecolored.de/releases' }
@@ -102,37 +97,6 @@ dependencies {
     }
     neoForge "net.neoforged:neoforge:${project.neo_version}"
 
-    // The port only needs the loader/base compatibility layer. Depending on
-    // the base module avoids pulling dozens of unrelated client/gameplay
-    // mixins into a dedicated server; the full FFAPI jar still satisfies this
-    // module dependency when users already have it installed.
-    implementation "org.sinytra.forgified-fabric-api:fabric-api-base:${project.ffapi_base_version}"
-    implementation "org.sinytra:forgified-fabric-loader:${project.ffloader_version}:full"
-    polymerIntermediary("eu.pb4:polymer-core:${project.polymer_version}") {
-        transitive = false
-    }
-
-    // Development/server smoke-test runtime for the Fabric Polymer build.
-    // Release users install the generated minimal Polymer bundle next to GOML.
-    localRuntime "org.sinytra.forgified-fabric-api:forgified-fabric-api:${project.ffapi_version}"
-    // Connector is a ModLauncher transformation service, so it must be placed
-    // on the loader/runtime-library path before NeoForge scans ordinary mods.
-    forgeRuntimeLibrary "org.sinytra:connector:${project.connector_version}:full"
-    serverDistribution("org.sinytra.forgified-fabric-api:forgified-fabric-api:${project.ffapi_version}") {
-        transitive = false
-    }
-    serverDistribution("org.sinytra:connector:${project.connector_version}:full") {
-        transitive = false
-    }
-    polymerBundleUpstream("eu.pb4:polymer-bundled:${project.polymer_version}") {
-        transitive = false
-    }
-    polymerBundleComponents("eu.pb4:polymer-core:${project.polymer_version}") {
-        transitive = false
-    }
-    polymerBundleComponents("eu.pb4:polymer-common:${project.polymer_version}") {
-        transitive = false
-    }
     rtreeEmbedded("com.jamieswhiteshirt:rtree-3i-lite-fabric:${project.rtree_version}") {
         transitive = false
     }
@@ -209,85 +173,11 @@ def remapCommonProtection = registerIntermediaryRemap(
         configurations.commonProtectionIntermediary,
         "common-protection-api-${project.common_protection_api_version}-named.jar"
 )
-def remapPolymer = registerIntermediaryRemap(
-        'remapPolymerIntermediary',
-        configurations.polymerIntermediary,
-        "polymer-core-${project.polymer_version}-named.jar"
-)
-
 dependencies {
     compileOnly files(configurations.rtreeEmbedded)
     compileOnly files(remapSgui.flatMap { it.archiveFile })
     compileOnly files(remapPlaceholder.flatMap { it.archiveFile })
     compileOnly files(remapCommonProtection.flatMap { it.archiveFile })
-    compileOnly files(remapPolymer.flatMap { it.archiveFile })
-}
-
-def generateLegacyPolymerBundleMetadata = tasks.register('generateLegacyPolymerBundleMetadata') {
-    def outputFile = layout.buildDirectory.file('generated/polymer-goml-bundle/fabric.mod.json')
-    outputs.file outputFile
-
-    doLast {
-        def metadata = [
-                schemaVersion: 1,
-                id           : 'polymer-bundled',
-                version      : project.polymer_version,
-                name         : 'Polymer (GOML runtime bundle)',
-                description  : 'Minimal Polymer runtime bundle for GOML on NeoForge through Connector.',
-                authors      : ['Patbox'],
-                contributors : ['aws404'],
-                contact      : [
-                        homepage: 'https://pb4.eu',
-                        sources : 'https://github.com/Patbox/polymer',
-                        issues  : 'https://github.com/Patbox/polymer/issues'
-                ],
-                license      : 'LGPLv3',
-                environment  : '*',
-                jars         : configurations.polymerBundleComponents.files
-                        .sort { it.name }
-                        .collect { [file: "META-INF/jars/${it.name}"] }
-        ]
-        def file = outputFile.get().asFile
-        file.parentFile.mkdirs()
-        file.text = JsonOutput.prettyPrint(JsonOutput.toJson(metadata)) + System.lineSeparator()
-    }
-}
-
-def bundleLegacyPolymer = tasks.register('bundleLegacyPolymer', Jar) {
-    dependsOn generateLegacyPolymerBundleMetadata
-    archiveFileName.set("polymer-goml-bundled-${project.polymer_version}.jar")
-    destinationDirectory.set(layout.buildDirectory.dir('polymer-distribution'))
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-
-    from {
-        configurations.polymerBundleUpstream.collect { zipTree(it) }
-    } {
-        exclude 'fabric.mod.json'
-        exclude 'META-INF/jars/**'
-    }
-    from(generateLegacyPolymerBundleMetadata.map {
-        layout.buildDirectory.file('generated/polymer-goml-bundle/fabric.mod.json')
-    })
-    from(configurations.polymerBundleComponents) {
-        into 'META-INF/jars'
-    }
-    from('../../THIRD_PARTY_NOTICES.md') {
-        into 'META-INF'
-    }
-    from('../../third_party/licenses') {
-        into 'META-INF/licenses'
-    }
-}
-
-dependencies {
-    localRuntime files(bundleLegacyPolymer.flatMap { it.archiveFile })
-}
-
-def collectServerDependencies = tasks.register('collectServerDependencies', Sync) {
-    dependsOn bundleLegacyPolymer
-    from configurations.serverDistribution
-    from bundleLegacyPolymer.flatMap { it.archiveFile }
-    into layout.buildDirectory.dir('server-dependencies')
 }
 
 def generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
@@ -301,8 +191,7 @@ def generateModMetadata = tasks.register('generateModMetadata', ProcessResources
             mod_license            : project.mod_license,
             mod_version            : project.version,
             mod_description        : project.mod_description,
-            mod_authors            : project.mod_authors,
-            ffapi_base_version     : project.ffapi_base_version
+            mod_authors            : project.mod_authors
     ]
 
     inputs.properties replaceProperties
@@ -583,10 +472,6 @@ tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
     options.release = project.java_version as int
     options.compilerArgs += ['-Xmaxerrs', '1000']
-}
-
-tasks.named('assemble').configure {
-    dependsOn collectServerDependencies
 }
 
 tasks.named('processResources', ProcessResources).configure {
