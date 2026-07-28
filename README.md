@@ -3,7 +3,7 @@
 *Get Off My Lawn ReServed* is a player-claim mod for Survival/Freebuild NeoForge servers.
 It works fully server side, so players do not need to install it on their clients.
 
-This project is a fork of [Get Off My Lawn by Draylar](https://github.com/Draylar/get-off-my-lawn), with a focus on improving and building on top of the original.
+This project is a fork of [Get Off My Lawn Reserved by Patbox](https://github.com/Patbox/get-off-my-lawn-reserved), with a focus on porting the mod to neoforge platform.
 
 ## Supported versions
 
