@@ -1,0 +1,71 @@
+# Third-party notices
+
+This file covers the third-party libraries that GOML embeds, distributes next
+to a release, or compiles against for an optional integration. The notices do
+not replace the original projects' license files or terms.
+
+Full license texts are stored in `third_party/licenses/` and are also packaged
+inside every GOML jar under `META-INF/licenses/`.
+
+## Embedded in every GOML jar
+
+| Component | Versions used | License | Source |
+| --- | --- | --- | --- |
+| rtree-3i-lite-fabric | 0.3.0 | Apache-2.0 | https://github.com/JamiesWhiteShirt/rtree-3i-lite |
+| Server GUI (sgui) | 1.6.1+1.21.1; 2.0.0+26.1 | LGPL-3.0-or-later | https://github.com/Patbox/sgui |
+| Placeholder API | 2.4.2+1.21; 3.0.0+26.1 | LGPL-3.0-or-later | https://github.com/Patbox/TextPlaceholderAPI |
+| Common Protection API | 1.0.0; 2.0.0 | MIT | https://github.com/Patbox/common-protection-api |
+
+## Distributed beside the Minecraft 1.21.1 build
+
+| Component | Version | License | Source |
+| --- | --- | --- | --- |
+| Sinytra Connector | 2.0.0-beta.15+1.21.1 | MIT | https://github.com/Sinytra/Connector |
+| Forgified Fabric API | 0.116.7+2.2.4+1.21.1 | Apache-2.0 | https://github.com/Sinytra/ForgifiedFabricAPI |
+| Forgified Fabric Loader (included by Forgified Fabric API) | 2.5.68+0.18.4+1.21.1 | Apache-2.0 | https://github.com/Sinytra/ForgifiedFabricAPI |
+| Polymer Core, Common and Networking | 0.9.19+1.21.1 | LGPL-3.0-or-later | https://github.com/Patbox/polymer |
+| Polymer Registry Sync Manipulator | 0.9.19+1.21.1 | MIT | https://github.com/Patbox/polymer |
+| Packet Tweaker | 0.5.6+1.21 | LGPL-3.0-or-later | https://github.com/Patbox/packet_tweaker |
+
+The release directory contains the exact resolved jars. Transitive Polymer
+modules and Packet Tweaker are listed explicitly above because Gradle resolves
+them from the Polymer Core dependency.
+
+## Distributed beside the Minecraft 26.1.x builds
+
+| Component | Version | License | Source |
+| --- | --- | --- | --- |
+| Polymer Neo bundle | 0.16.6-beta.8+26.1.2, GOML patch set | LGPL-3.0-only | https://codeberg.org/tomalbrc/polymer-neo |
+| Polymer Registry Sync Manipulator module | 0.16.6-beta.8+26.1.2 | MIT | https://codeberg.org/tomalbrc/polymer-neo |
+
+The exact upstream revision, local modifications, rebuild instructions and
+binary checksum are documented in `third_party/polymer-neo/README.md`. The
+corresponding patch is in `third_party/polymer-neo/polymer-neo-goml.patch`.
+
+## Optional compile-only integrations
+
+These APIs are not embedded in or distributed with GOML.
+
+| Component | Version used to compile | License | Source |
+| --- | --- | --- | --- |
+| DynmapCoreAPI | 3.6 | Apache-2.0 | https://github.com/webbukkit/dynmap |
+| BlueMap API | 2.7.4 | MIT | https://github.com/BlueMap-Minecraft/BlueMapAPI |
+
+## License text mapping
+
+- Apache-2.0: `third_party/licenses/Apache-2.0.txt`
+- GNU GPL v3, incorporated by and required alongside LGPL v3:
+  `third_party/licenses/GPL-3.0-only.txt`
+- GNU LGPL v3: `third_party/licenses/LGPL-3.0-only.txt`
+- MIT: `third_party/licenses/MIT.txt`
+
+Copyright remains with the respective projects and contributors. The
+copyright notices stated by the MIT-licensed upstream projects are:
+
+- Common Protection API: Copyright (c) 2022 Patbox
+- Sinytra Connector: Copyright (c) 2023 Su5eD
+- BlueMap API: Copyright (c) Blue <https://www.bluecolored.de> and contributors
+
+The audited Polymer Registry Sync Manipulator modules declare MIT in their mod
+metadata but do not supply a separate module-level copyright line; their
+upstream source links and contributor history are retained above.

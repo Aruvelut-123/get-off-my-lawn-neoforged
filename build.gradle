@@ -188,6 +188,8 @@ def extractEmbeddedLibraries = tasks.register('extractEmbeddedLibraries', Sync) 
         configurations.embeddedLibraries.collect { zipTree(it) }
     }
     exclude 'META-INF/**'
+    exclude 'LICENSE*'
+    exclude 'NOTICE*'
     exclude 'fabric.mod.json'
     exclude '*.accesswidener'
     exclude '*.mixins.json'
@@ -367,6 +369,12 @@ tasks.withType(ProcessResources).configureEach {
 
 tasks.named('jar', Jar).configure {
     from 'LICENSE'
+    from('THIRD_PARTY_NOTICES.md') {
+        into 'META-INF'
+    }
+    from('third_party/licenses') {
+        into 'META-INF/licenses'
+    }
 
     from('src/main/resources/data/goml/lang') {
         into 'assets/goml/lang'

@@ -65,6 +65,19 @@ if ($LASTEXITCODE -ne 0) {
 if ($Task -in @('build', 'assemble')) {
     $libraryDirectory = Join-Path $projectDirectory 'build/libs'
     $artifactDirectory = Join-Path $repositoryRoot "build/multiversion/$Profile"
+    if (Test-Path -LiteralPath $artifactDirectory -PathType Container) {
+        $resolvedArtifacts = (Resolve-Path -LiteralPath $artifactDirectory).Path
+        $resolvedDistributionRoot = [IO.Path]::GetFullPath(
+            (Join-Path $repositoryRoot 'build/multiversion')
+        )
+        if (-not $resolvedArtifacts.StartsWith(
+            $resolvedDistributionRoot + [IO.Path]::DirectorySeparatorChar,
+            [StringComparison]::OrdinalIgnoreCase
+        )) {
+            throw "Refusing to clean unexpected artifact path: $resolvedArtifacts"
+        }
+        Remove-Item -LiteralPath $resolvedArtifacts -Recurse -Force
+    }
     New-Item -ItemType Directory -Force -Path $artifactDirectory | Out-Null
 
     $expectedSuffix = "+$($profileProperties['minecraft_version'])+neoforge.jar"
@@ -83,6 +96,17 @@ if ($Task -in @('build', 'assemble')) {
         Get-ChildItem -LiteralPath $dependencyDirectory -Filter '*.jar' |
                 Copy-Item -Destination $artifactDirectory -Force
     }
+
+    Copy-Item -LiteralPath (Join-Path $repositoryRoot 'LICENSE') `
+            -Destination (Join-Path $artifactDirectory 'LICENSE-GOML.txt') -Force
+    Copy-Item -LiteralPath (Join-Path $repositoryRoot 'THIRD_PARTY_NOTICES.md') `
+            -Destination $artifactDirectory -Force
+    Copy-Item -LiteralPath (Join-Path $repositoryRoot 'third_party/licenses') `
+            -Destination $artifactDirectory -Recurse -Force
+    Copy-Item -LiteralPath (Join-Path $repositoryRoot 'third_party/polymer-neo/README.md') `
+            -Destination (Join-Path $artifactDirectory 'POLYMER_NEO_SOURCE.md') -Force
+    Copy-Item -LiteralPath (Join-Path $repositoryRoot 'third_party/polymer-neo/polymer-neo-goml.patch') `
+            -Destination $artifactDirectory -Force
 
     Write-Host "Artifacts successfully copied to: $artifactDirectory"
 }

@@ -121,9 +121,6 @@ dependencies {
     serverDistribution("org.sinytra.forgified-fabric-api:forgified-fabric-api:${project.ffapi_version}") {
         transitive = false
     }
-    serverDistribution("org.sinytra:forgified-fabric-loader:${project.ffloader_version}:full") {
-        transitive = false
-    }
     serverDistribution("org.sinytra:connector:${project.connector_version}:full") {
         transitive = false
     }
@@ -358,6 +355,8 @@ def extractEmbeddedLibraries = tasks.register('extractEmbeddedLibraries', Sync) 
         (configurations.rtreeEmbedded.files + remappedEmbeddedLibraries.files).collect { zipTree(it) }
     }
     exclude 'META-INF/**'
+    exclude 'LICENSE*'
+    exclude 'NOTICE*'
     exclude 'fabric.mod.json'
     exclude '*.accesswidener'
     exclude '*.mixins.json'
@@ -531,6 +530,12 @@ tasks.named('processResources', ProcessResources).configure {
 
 tasks.named('jar', Jar).configure {
     from '../../LICENSE'
+    from('../../THIRD_PARTY_NOTICES.md') {
+        into 'META-INF'
+    }
+    from('../../third_party/licenses') {
+        into 'META-INF/licenses'
+    }
     manifest {
         attributes(
                 'Specification-Title': project.mod_id,

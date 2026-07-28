@@ -58,4 +58,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: GOML-${{ matrix.minecraft }}-NeoForge
-          path: build/multiversion/${{ matrix.minecraft }}/*.jar
+          path: build/multiversion/${{ matrix.minecraft }}/

@@ -7,18 +7,26 @@ This project is a fork of [Get Off My Lawn by Draylar](https://github.com/Drayla
 
 ## Supported versions
 
-| Minecraft | NeoForge | Additional dependency |
+| Minecraft | NeoForge | Server runtime supplied in the release directory |
 | --- | --- | --- |
-| 1.21.1 | **21.1.233** | [Forgified Fabric API](https://www.curseforge.com/minecraft/mc-mods/forgified-fabric-api) `0.116.7+2.2.4+1.21.1` |
-| 26.1 | NeoForge 26.1.0.19-beta or newer 26.1 build | None |
-| 26.1.1 | NeoForge 26.1.1.15-beta or newer 26.1.1 build | None |
-| 26.1.2 | NeoForge 26.1.2.87 or newer 26.1.2 build | None |
+| 1.21.1 | **21.1.233** | Connector `2.0.0-beta.15`, Forgified Fabric API `0.116.7`, Polymer `0.9.19` and resolved Polymer runtime modules |
+| 26.1 | NeoForge 26.1.0.19-beta or newer 26.1 build | Patched Polymer Neo `0.16.6-beta.8` |
+| 26.1.1 | NeoForge 26.1.1.15-beta or newer 26.1.1 build | Patched Polymer Neo `0.16.6-beta.8` |
+| 26.1.2 | NeoForge 26.1.2.87 or newer 26.1.2 build | Patched Polymer Neo `0.16.6-beta.8` |
 
-The 1.21.1 build uses Forgified Fabric API's base compatibility layer and
-Forgified Fabric Loader to retain the PB4-based server UI and placeholder
-integration. Installing the full Forgified Fabric API build listed above is
-recommended. The 26.1.x build is a native NeoForge port and does not require
-Forgified Fabric API.
+Install every jar from the matching release directory into the server's
+`mods` directory. Do not install GOML or these compatibility jars on ordinary
+clients. Polymer translates GOML's custom registry entries, skin-textured
+blocks and items to vanilla representations, preserving vanilla placement and
+breaking animation/sounds without requiring a client mod.
+
+The 1.21.1 build uses [Sinytra Connector](https://github.com/Sinytra/Connector)
+and [Forgified Fabric API](https://github.com/Sinytra/ForgifiedFabricAPI) to
+run the Fabric Polymer line on NeoForge 21.1.233. Polymer 0.9.19 prints an
+upstream warning that Connector/Forge is unsupported; dedicated-server startup
+has been validated, but client visuals and large-modpack interoperability
+should be tested before deployment. The 26.1.x builds use the audited
+[Polymer Neo port](https://codeberg.org/tomalbrc/polymer-neo).
 
 Release files use the format
 `<mod-version>+<minecraft-version>+neoforge`, for example
@@ -149,8 +157,15 @@ Use PowerShell 7 and the included Gradle wrapper. Java 21 is used for the
 ```
 
 Collected release jars are written to
-`build/multiversion/<minecraft-version>/`. The build and release workflows use
-the same version profiles.
+`build/multiversion/<minecraft-version>/`. Each directory contains GOML, its
+required server-side runtime jars, the third-party notices, all applicable
+license texts, and the modified Polymer Neo source patch. The build and release
+workflows use the same version profiles.
+
+GitHub Actions caches both Gradle's shared dependency state and the
+version-specific Minecraft/NeoForge workspace for all four targets. A missing
+cache is populated after a successful build and reused by later matching
+builds.
 
 ## Development note
 
@@ -161,3 +176,11 @@ local compile and dedicated-server validation.
 ## License
 
 *Get Off My Lawn ReServed* is available under the MIT license. The project, code, and assets found in this repository are available for free public use (as long as credited).
+
+Embedded, distributed, and optional compile-only third-party components are
+listed individually in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+Complete license texts and a reverse component mapping are in
+[`third_party/licenses/`](third_party/licenses/). The locally patched Polymer
+Neo bundle includes its exact upstream revision, checksum, rebuild instructions
+and corresponding source patch in
+[`third_party/polymer-neo/`](third_party/polymer-neo/).

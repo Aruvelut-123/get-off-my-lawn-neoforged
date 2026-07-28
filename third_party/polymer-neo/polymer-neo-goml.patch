@@ -1,0 +1,52 @@
+diff --git a/build.gradle b/build.gradle
+index 2ad7535..c1f09e1 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -100 +99,0 @@ dependencies {
+-    api project(path: ":polymer-autohost")
+@@ -105,2 +103,0 @@ dependencies {
+-    api project(path: ":polymer-blocks")
+-    api project(path: ":polymer-virtual-entity")
+@@ -108 +104,0 @@ dependencies {
+-    include(project(path: ":polymer-autohost"))
+@@ -110,0 +107,2 @@ dependencies {
++    include(project(path: ":polymer-networking"))
++    include(project(path: ":polymer-reg-sync-manipulator"))
+@@ -114,2 +111,0 @@ dependencies {
+-    include(project(path: ":polymer-blocks"))
+-    include(project(path: ":polymer-virtual-entity"))
+diff --git a/polymer-core/build.gradle b/polymer-core/build.gradle
+index 924a123..9689ca2 100644
+--- a/polymer-core/build.gradle
++++ b/polymer-core/build.gradle
+@@ -100,7 +100 @@ dependencies {
+-    compileOnly (project(path: ':polymer-resource-pack'))
+-    compileOnly (project(path: ':polymer-resource-pack-extras'))
+-    compileOnly (project(path: ':polymer-resource-pack-extras'))
+-    compileOnly (project(path: ':polymer-virtual-entity'))
+-    compileOnly (project(path: ':polymer-virtual-entity'))
+-
+-}
+\ No newline at end of file
++}
+diff --git a/polymer-core/src/main/java/eu/pb4/polymer/core/mixin/item/ItemStackMixin.java b/polymer-core/src/main/java/eu/pb4/polymer/core/mixin/item/ItemStackMixin.java
+index 2e0aad9..f2ed555 100644
+--- a/polymer-core/src/main/java/eu/pb4/polymer/core/mixin/item/ItemStackMixin.java
++++ b/polymer-core/src/main/java/eu/pb4/polymer/core/mixin/item/ItemStackMixin.java
+@@ -24 +24,5 @@ public class ItemStackMixin {
+-    @ModifyExpressionValue(method = "addDetailsToTooltip", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/TooltipFlag;isAdvanced()Z"))
++    @ModifyExpressionValue(
++            method = {"addDetailsToTooltipComponents", "addDetailsToTooltipTail"},
++            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/TooltipFlag;isAdvanced()Z"),
++            require = 0
++    )
+diff --git a/settings.gradle b/settings.gradle
+index e9b71dc..1c79119 100644
+--- a/settings.gradle
++++ b/settings.gradle
+@@ -27 +26,0 @@ include 'polymer-resource-pack-extras'
+-include 'polymer-blocks'
+@@ -29 +27,0 @@ include 'polymer-reg-sync-manipulator'
+-include 'polymer-autohost'
+@@ -31 +28,0 @@ include 'polymer-networking'
+-include 'polymer-virtual-entity'
