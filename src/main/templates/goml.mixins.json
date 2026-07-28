@@ -30,6 +30,7 @@
     "augment.EnderManMixin${'$'}EndermanTakeBlockGoalMixin",
     "augment.VillagerMixin",
     "compat.DynmapClientMixin",
+    "compat.PolymerRegistryEventMixin",
     "datafix.MixinDimensionStorageFileFix"
   ],
   "injectors": {
