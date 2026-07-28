@@ -9,8 +9,6 @@ import draylar.goml.block.entity.ClaimAnchorBlockEntity;
 import draylar.goml.item.UpgradeKitItem;
 import draylar.goml.registry.GOMLEntities;
 import draylar.goml.registry.GOMLTextures;
-import eu.pb4.polymer.common.impl.tweaker.PacketContext;
-import eu.pb4.polymer.core.api.block.PolymerHeadBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,7 +32,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
 @SuppressWarnings({"deprecation"})
-public class ClaimAnchorBlock extends Block implements EntityBlock, HeadTextureProvider, PolymerHeadBlock {
+public class ClaimAnchorBlock extends Block implements EntityBlock, HeadTextureProvider {
 
     private final IntSupplier radius;
     private final String texture;
@@ -143,8 +141,4 @@ public class ClaimAnchorBlock extends Block implements EntityBlock, HeadTextureP
         return this.texture;
     }
 
-    @Override
-    public String getPolymerSkinValue(BlockState state, BlockPos pos, PacketContext context) {
-        return this.texture;
-    }
 }

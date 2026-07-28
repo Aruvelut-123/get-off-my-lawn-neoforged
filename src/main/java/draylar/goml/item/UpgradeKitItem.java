@@ -10,8 +10,6 @@ import draylar.goml.api.ClaimUtils;
 import draylar.goml.api.event.ClaimEvents;
 import draylar.goml.block.ClaimAnchorBlock;
 import draylar.goml.block.entity.ClaimAnchorBlockEntity;
-import eu.pb4.polymer.common.impl.tweaker.PacketContext;
-import eu.pb4.polymer.core.api.item.PolymerItem;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -31,16 +29,13 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
-public class UpgradeKitItem extends Item implements PolymerItem {
+public class UpgradeKitItem extends Item {
 
     private final ClaimAnchorBlock from;
     private final ClaimAnchorBlock to;
-    private final Item clientItem;
 
-    public UpgradeKitItem(Properties settings, ClaimAnchorBlock from, ClaimAnchorBlock to, Item display) {
+    public UpgradeKitItem(Properties settings, ClaimAnchorBlock from, ClaimAnchorBlock to) {
         super(settings);
-        this.clientItem = display;
-
         this.from = from;
         this.to = to;
     }
@@ -150,8 +145,4 @@ public class UpgradeKitItem extends Item implements PolymerItem {
         return true;
     }
 
-    @Override
-    public Item getPolymerItem(ItemStack stack, PacketContext context) {
-        return this.clientItem;
-    }
 }

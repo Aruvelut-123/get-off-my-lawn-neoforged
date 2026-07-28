@@ -35,9 +35,3 @@ versionRange="${minecraft_version_range}"
 ordering="NONE"
 side="BOTH"
 
-[[dependencies.${mod_id}]]
-modId="polymer_core"
-type="required"
-versionRange="[0.16.6-beta.8,)"
-ordering="BEFORE"
-side="SERVER"

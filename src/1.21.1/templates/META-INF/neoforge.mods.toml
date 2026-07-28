@@ -35,9 +35,3 @@ versionRange="${minecraft_version_range}"
 ordering="NONE"
 side="BOTH"
 
-[[dependencies.${mod_id}]]
-modId="fabric_api_base"
-type="required"
-versionRange="[${ffapi_base_version},)"
-ordering="NONE"
-side="BOTH"

@@ -17,8 +17,8 @@ import draylar.goml.registry.GOMLBlocks;
 import draylar.goml.registry.GOMLEntities;
 import draylar.goml.registry.GOMLItems;
 import eu.pb4.common.protection.api.CommonProtection;
-import eu.pb4.polymer.core.api.item.PolymerItemGroupUtils;
 import net.minecraft.core.SectionPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -37,6 +37,8 @@ import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -56,6 +58,8 @@ public final class GetOffMyLawn {
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
     public static final List<Runnable> NEXT_TICK_TASK = new ArrayList<>();
     public static GOMLConfig CONFIG = new GOMLConfig();
+    private static final DeferredRegister<CreativeModeTab> CREATIVE_TABS =
+            DeferredRegister.create(BuiltInRegistries.CREATIVE_MODE_TAB, MOD_ID);
 
     public static final CreativeModeTab GROUP = CreativeModeTab.builder()
             .title(Component.translatable("itemGroup.goml.group"))
@@ -66,13 +70,15 @@ public final class GetOffMyLawn {
                 GOMLItems.BASE_ITEMS.forEach(output::accept);
             })
             .build();
+    private static final DeferredHolder<CreativeModeTab, CreativeModeTab> GROUP_REGISTRATION =
+            CREATIVE_TABS.register("group", () -> GROUP);
 
     public GetOffMyLawn(IEventBus modEventBus) {
         GOMLBlocks.register(modEventBus);
         GOMLItems.register(modEventBus);
         GOMLEntities.register(modEventBus);
         GOMLAttachments.register(modEventBus);
-        PolymerItemGroupUtils.registerPolymerItemGroup(id("group"), GROUP);
+        CREATIVE_TABS.register(modEventBus);
 
         EventHandlers.register();
         ClaimCommand.register();
@@ -92,13 +98,6 @@ public final class GetOffMyLawn {
         NeoForge.EVENT_BUS.addListener(this::onChunkUnload);
 
         CardboardWarning.checkAndAnnounce();
-        if (ModList.get().isLoaded("polymer_virtual_entity")
-                && ModList.get().isLoaded("byepregen")) {
-            LOGGER.error("Full Polymer and ByePregen were detected together. "
-                    + "Polymer Virtual Entity 0.9.19 conflicts with ByePregen 1.0.7 "
-                    + "in ServerChunkCache.tickChunks. Remove the external full "
-                    + "Polymer bundle and use GOML's supplied minimal Polymer runtime.");
-        }
         if (ModList.get().isLoaded("argonauts")) {
             ArgonautsCompat.init();
         }

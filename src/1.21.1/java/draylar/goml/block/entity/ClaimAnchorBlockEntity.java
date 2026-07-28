@@ -6,12 +6,12 @@ import draylar.goml.api.Claim;
 import draylar.goml.api.ClaimBox;
 import draylar.goml.api.ClaimUtils;
 import draylar.goml.registry.GOMLEntities;
-import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.LongTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -100,7 +100,7 @@ public class ClaimAnchorBlockEntity extends BlockEntity {
 
     @Override
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registryLookup) {
-        ListTag positions = tag.getList(AUGMENT_LIST_KEY, NbtType.LONG);
+        ListTag positions = tag.getList(AUGMENT_LIST_KEY, Tag.TAG_LONG);
         positions.forEach(sub -> {
             BlockPos foundPos = BlockPos.of(((LongTag) sub).getAsLong());
             this.loadPositions.add(foundPos);

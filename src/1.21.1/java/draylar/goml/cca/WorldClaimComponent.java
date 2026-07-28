@@ -4,10 +4,10 @@ import com.jamieswhiteshirt.rtree3i.ConfigurationBuilder;
 import com.jamieswhiteshirt.rtree3i.RTreeMap;
 import draylar.goml.api.Claim;
 import draylar.goml.api.ClaimBox;
-import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.common.util.INBTSerializable;
@@ -42,7 +42,7 @@ public class WorldClaimComponent implements ClaimComponent, INBTSerializable<Com
         var world = this.world.dimension().location();
 
         var version = tag.getInt("Version");
-        ListTag nbtList = tag.getList("Claims", NbtType.COMPOUND);
+        ListTag nbtList = tag.getList("Claims", Tag.TAG_COMPOUND);
 
         if (version == 0) {
             nbtList.forEach(child -> {

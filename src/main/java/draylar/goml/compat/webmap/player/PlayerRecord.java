@@ -70,7 +70,7 @@ public class PlayerRecord {
     /**
      * Gets an icon from the block's legacy head texture and sets display name.
      * 
-     * @param headBlock the polymer head block
+     * @param headBlock the textured claim block
      * @param displayName the display name, or null for placeholder
      */
     public PlayerRecord(HeadTextureProvider headBlock, @Nullable String displayName) {

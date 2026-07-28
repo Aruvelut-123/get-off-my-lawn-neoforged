@@ -18,6 +18,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -54,7 +55,10 @@ public class GOMLBlocks {
         var id = GetOffMyLawn.id(name);
         var block = BLOCKS.register(name, () -> {
             var value = new ClaimAnchorBlock(
-                    BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, id)).strength(hardness, 3600000.0F),
+                    BlockBehaviour.Properties.of()
+                            .setId(ResourceKey.create(Registries.BLOCK, id))
+                            .sound(SoundType.STONE)
+                            .strength(hardness, 3600000.0F),
                     radius,
                     texture
             );
@@ -74,7 +78,9 @@ public class GOMLBlocks {
     private static <T extends ClaimAugmentBlock> RegisteredPair<T> register(String name, Function<BlockBehaviour.Properties, T> augment, int tooltipLines) {
         var id = GetOffMyLawn.id(name);
         var block = BLOCKS.register(name, () -> {
-            T value = augment.apply(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, id)));
+            T value = augment.apply(BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, id))
+                    .sound(SoundType.STONE));
             value.setEnabledCheck(() -> GetOffMyLawn.CONFIG.enabledAugments.getOrDefault(value, true));
             AUGMENTS.add(value);
             GOMLAugments.register(id, value);

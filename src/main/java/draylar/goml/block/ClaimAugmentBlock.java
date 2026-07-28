@@ -8,8 +8,6 @@ import draylar.goml.block.entity.ClaimAnchorBlockEntity;
 import draylar.goml.block.entity.ClaimAugmentBlockEntity;
 import draylar.goml.registry.GOMLEntities;
 import draylar.goml.registry.GOMLTextures;
-import eu.pb4.polymer.common.impl.tweaker.PacketContext;
-import eu.pb4.polymer.core.api.block.PolymerHeadBlock;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,7 +33,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
-public class ClaimAugmentBlock extends Block implements Augment, EntityBlock, HeadTextureProvider, PolymerHeadBlock {
+public class ClaimAugmentBlock extends Block implements Augment, EntityBlock, HeadTextureProvider {
 
     private final String texture;
     private BooleanSupplier isEnabled = () -> true;
@@ -199,8 +197,4 @@ public class ClaimAugmentBlock extends Block implements Augment, EntityBlock, He
         return this.texture;
     }
 
-    @Override
-    public String getPolymerSkinValue(BlockState state, BlockPos pos, PacketContext context) {
-        return this.texture;
-    }
 }
