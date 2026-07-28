@@ -77,6 +77,7 @@ configurations {
     sguiIntermediary
     placeholderIntermediary
     commonProtectionIntermediary
+    polymerIntermediary
 }
 
 repositories {
@@ -104,6 +105,15 @@ dependencies {
     // module dependency when users already have it installed.
     implementation "org.sinytra.forgified-fabric-api:fabric-api-base:${project.ffapi_base_version}"
     implementation "org.sinytra:forgified-fabric-loader:${project.ffloader_version}:full"
+    polymerIntermediary("eu.pb4:polymer-core:${project.polymer_version}") {
+        transitive = false
+    }
+
+    // Development/server smoke-test runtime for the Fabric Polymer build.
+    // Release users install the same three jars next to GOML.
+    localRuntime "org.sinytra.forgified-fabric-api:forgified-fabric-api:${project.ffapi_version}"
+    localRuntime "org.sinytra:connector:${project.connector_version}:full"
+    localRuntime "eu.pb4:polymer-core:${project.polymer_version}"
 
     rtreeEmbedded("com.jamieswhiteshirt:rtree-3i-lite-fabric:${project.rtree_version}") {
         transitive = false
@@ -181,12 +191,18 @@ def remapCommonProtection = registerIntermediaryRemap(
         configurations.commonProtectionIntermediary,
         "common-protection-api-${project.common_protection_api_version}-named.jar"
 )
+def remapPolymer = registerIntermediaryRemap(
+        'remapPolymerIntermediary',
+        configurations.polymerIntermediary,
+        "polymer-core-${project.polymer_version}-named.jar"
+)
 
 dependencies {
     compileOnly files(configurations.rtreeEmbedded)
     compileOnly files(remapSgui.flatMap { it.archiveFile })
     compileOnly files(remapPlaceholder.flatMap { it.archiveFile })
     compileOnly files(remapCommonProtection.flatMap { it.archiveFile })
+    compileOnly files(remapPolymer.flatMap { it.archiveFile })
 }
 
 def generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {

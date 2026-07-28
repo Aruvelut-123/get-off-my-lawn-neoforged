@@ -17,6 +17,7 @@ import draylar.goml.registry.GOMLBlocks;
 import draylar.goml.registry.GOMLEntities;
 import draylar.goml.registry.GOMLItems;
 import eu.pb4.common.protection.api.CommonProtection;
+import eu.pb4.polymer.core.api.item.PolymerCreativeModeTabUtils;
 import net.minecraft.core.SectionPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -29,6 +30,7 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.level.ChunkEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
@@ -80,6 +82,7 @@ public final class GetOffMyLawn {
         GOMLEntities.register(modEventBus);
         GOMLAttachments.register(modEventBus);
         CREATIVE_TABS.register(modEventBus);
+        modEventBus.addListener(this::onCommonSetup);
 
         EventHandlers.register();
         ClaimCommand.register();
@@ -106,6 +109,13 @@ public final class GetOffMyLawn {
 
     public static Identifier id(String name) {
         return Identifier.fromNamespaceAndPath(MOD_ID, name);
+    }
+
+    private void onCommonSetup(FMLCommonSetupEvent event) {
+        event.enqueueWork(() -> {
+            GOMLEntities.registerPolymerBlockEntities();
+            PolymerCreativeModeTabUtils.registerPolymerCreativeModeTab(id("group"), GROUP);
+        });
     }
 
     private void onServerStarting(ServerStartingEvent event) {

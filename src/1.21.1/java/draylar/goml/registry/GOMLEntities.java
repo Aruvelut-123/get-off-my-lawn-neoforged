@@ -3,6 +3,7 @@ package draylar.goml.registry;
 import draylar.goml.GetOffMyLawn;
 import draylar.goml.block.entity.ClaimAnchorBlockEntity;
 import draylar.goml.block.entity.ClaimAugmentBlockEntity;
+import eu.pb4.polymer.core.api.block.PolymerBlockUtils;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -39,6 +40,10 @@ public class GOMLEntities {
 
     public static void register(IEventBus eventBus) {
         BLOCK_ENTITY_TYPES.register(eventBus);
+    }
+
+    public static void registerPolymerBlockEntities() {
+        PolymerBlockUtils.registerBlockEntity(CLAIM_ANCHOR.get(), CLAIM_AUGMENT.get());
     }
 
     private GOMLEntities() {

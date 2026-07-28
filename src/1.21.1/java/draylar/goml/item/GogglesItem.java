@@ -3,6 +3,7 @@ package draylar.goml.item;
 import draylar.goml.GetOffMyLawn;
 import draylar.goml.api.ClaimUtils;
 import draylar.goml.api.WorldParticleUtils;
+import eu.pb4.polymer.core.api.item.PolymerItem;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.stream.Collectors;
@@ -12,9 +13,11 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterials;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 
-public class GogglesItem extends ArmorItem {
+public class GogglesItem extends ArmorItem implements PolymerItem {
     public GogglesItem(Properties settings) {
         super(ArmorMaterials.IRON, Type.HELMET, settings.durability(-1));
     }
@@ -43,4 +46,8 @@ public class GogglesItem extends ArmorItem {
         return true;
     }
 
+    @Override
+    public Item getPolymerItem(ItemStack stack, @Nullable ServerPlayer player) {
+        return Items.IRON_HELMET;
+    }
 }
