@@ -1,6 +1,4 @@
 import net.fabricmc.loom.task.RemapJarTask
-import net.fabricmc.mappingio.MappingReader
-import net.fabricmc.mappingio.tree.MemoryMappingTree
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
@@ -74,7 +72,6 @@ sourceSets.main.resources.srcDir prepareLegacyResources
 
 configurations {
     rtreeEmbedded
-    sguiIntermediary
     placeholderIntermediary
     commonProtectionIntermediary
 }
@@ -98,9 +95,6 @@ dependencies {
     neoForge "net.neoforged:neoforge:${project.neo_version}"
 
     rtreeEmbedded("com.jamieswhiteshirt:rtree-3i-lite-fabric:${project.rtree_version}") {
-        transitive = false
-    }
-    sguiIntermediary("eu.pb4:sgui:${project.sgui_version}") {
         transitive = false
     }
     placeholderIntermediary("eu.pb4:placeholder-api:${project.placeholder_version}") {
@@ -158,11 +152,6 @@ def registerIntermediaryRemap = { String taskName, Configuration inputConfigurat
     }
 }
 
-def remapSgui = registerIntermediaryRemap(
-        'remapSguiIntermediary',
-        configurations.sguiIntermediary,
-        "sgui-${project.sgui_version}-named.jar"
-)
 def remapPlaceholder = registerIntermediaryRemap(
         'remapPlaceholderIntermediary',
         configurations.placeholderIntermediary,
@@ -175,7 +164,6 @@ def remapCommonProtection = registerIntermediaryRemap(
 )
 dependencies {
     compileOnly files(configurations.rtreeEmbedded)
-    compileOnly files(remapSgui.flatMap { it.archiveFile })
     compileOnly files(remapPlaceholder.flatMap { it.archiveFile })
     compileOnly files(remapCommonProtection.flatMap { it.archiveFile })
 }
@@ -203,112 +191,12 @@ def generateModMetadata = tasks.register('generateModMetadata', ProcessResources
 sourceSets.main.resources.srcDir generateModMetadata
 
 def remappedEmbeddedLibraries = files(
-        remapSgui.flatMap { it.archiveFile },
         remapPlaceholder.flatMap { it.archiveFile },
         remapCommonProtection.flatMap { it.archiveFile }
 )
 
-def extractEmbeddedSguiResources = tasks.register('extractEmbeddedSguiResources', Sync) {
-    dependsOn remapSgui
-    from { zipTree(remapSgui.get().archiveFile.get().asFile) }
-    include 'sgui.mixins.json', 'sgui-refmap.json'
-    into layout.buildDirectory.dir('generated/resources/embeddedSgui')
-
-    doLast {
-        def mixinFile = destinationDir.toPath().resolve('sgui.mixins.json').toFile()
-        def mixinConfig = new JsonSlurper().parse(mixinFile)
-        mixinConfig.injectors = (mixinConfig.injectors ?: [:]) + [defaultRequire: 0]
-        mixinFile.text = JsonOutput.prettyPrint(JsonOutput.toJson(mixinConfig)) + System.lineSeparator()
-
-        // SGUI's bytecode is intermediary, but its annotation selectors use
-        // Yarn names and its refmap points those selectors back to intermediary.
-        // Once the classes are remapped to Mojang names, rewrite the refmap
-        // values to the same named namespace as the rest of the NeoForge mod.
-        def mappings = new MemoryMappingTree(true)
-        MappingReader.read(loom.mappingConfiguration.tinyMappings, mappings)
-        int intermediaryNamespace = mappings.getNamespaceId('intermediary')
-        int namedNamespace = mappings.getNamespaceId('named')
-
-        def mapMemberSelector
-        mapMemberSelector = { String selector ->
-            String owner = null
-            String member = selector
-            if (selector.startsWith('L')) {
-                int ownerEnd = selector.indexOf(';')
-                if (ownerEnd > 1) {
-                    owner = selector.substring(1, ownerEnd)
-                    member = selector.substring(ownerEnd + 1)
-                }
-            }
-
-            boolean method = member.contains('(')
-            int descriptorStart = method ? member.indexOf('(') : member.indexOf(':')
-            if (descriptorStart < 0) {
-                return selector
-            }
-
-            String name = member.substring(0, descriptorStart)
-            String descriptor = member.substring(descriptorStart + (method ? 0 : 1))
-            def mapping
-            if (owner != null) {
-                def ownerMapping = mappings.getClass(owner, intermediaryNamespace)
-                def members = ownerMapping == null
-                        ? []
-                        : (method ? ownerMapping.methods : ownerMapping.fields)
-                mapping = members.find {
-                    it.getName(intermediaryNamespace) == name &&
-                            it.getDesc(intermediaryNamespace) == descriptor
-                }
-            } else {
-                def candidates = mappings.classes.collectMany { clazz ->
-                    def members = method ? clazz.methods : clazz.fields
-                    members.findAll {
-                        it.getName(intermediaryNamespace) == name &&
-                                it.getDesc(intermediaryNamespace) == descriptor
-                    }
-                }
-                mapping = candidates.size() == 1 ? candidates.first() : null
-            }
-            if (mapping == null) {
-                def candidates = mappings.classes.collectMany { clazz ->
-                    def members = method ? clazz.methods : clazz.fields
-                    members.findAll {
-                        it.getName(intermediaryNamespace) == name &&
-                                it.getDesc(intermediaryNamespace) == descriptor
-                    }
-                }
-                mapping = candidates.size() == 1 ? candidates.first() : null
-            }
-
-            String mappedName = mapping?.getName(namedNamespace) ?: name
-            String mappedDescriptor = mappings.mapDesc(
-                    descriptor,
-                    intermediaryNamespace,
-                    namedNamespace
-            )
-            String mappedOwner = owner == null
-                    ? null
-                    : mappings.mapClassName(owner, intermediaryNamespace, namedNamespace)
-            String mappedMember = method
-                    ? "${mappedName}${mappedDescriptor}"
-                    : "${mappedName}:${mappedDescriptor}"
-            mappedOwner == null ? mappedMember : "L${mappedOwner};${mappedMember}"
-        }
-
-        def refmapFile = destinationDir.toPath().resolve('sgui-refmap.json').toFile()
-        def refmap = new JsonSlurper().parse(refmapFile)
-        refmap.mappings.each { mixin, selectors ->
-            selectors.replaceAll { key, value -> mapMemberSelector(value as String) }
-        }
-        refmap.remove('data')
-        refmapFile.text = JsonOutput.prettyPrint(JsonOutput.toJson(refmap)) + System.lineSeparator()
-    }
-}
-
-sourceSets.main.resources.srcDir extractEmbeddedSguiResources
-
 def extractEmbeddedLibraries = tasks.register('extractEmbeddedLibraries', Sync) {
-    dependsOn remapSgui, remapPlaceholder, remapCommonProtection
+    dependsOn remapPlaceholder, remapCommonProtection
     from {
         (configurations.rtreeEmbedded.files + remappedEmbeddedLibraries.files).collect { zipTree(it) }
     }

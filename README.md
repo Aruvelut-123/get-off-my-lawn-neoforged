@@ -44,7 +44,7 @@ modpack.
 
 Release files use the format
 `<mod-version>+<minecraft-version>+neoforge`, for example
-`goml-1.21.0+1.21.1+neoforge.jar`.
+`goml-1.21.1+1.21.1+neoforge.jar`.
 
 ## Video showcase
 
@@ -72,6 +72,9 @@ When this item equipped in the helmet, mainhand or offhand slot, claim outlines 
 ### Claim configuration
 
 To configure your claim, you can interact with the anchor block. A UI will appear that offers several configuration options:
+
+The UI uses Minecraft's native container menus through NeoForge; it does not
+require or embed a server-GUI compatibility layer.
 
 - The player list can be used to add and remove access of players to your claim
 - The Augment list, that can be used for checking and configuring active augments

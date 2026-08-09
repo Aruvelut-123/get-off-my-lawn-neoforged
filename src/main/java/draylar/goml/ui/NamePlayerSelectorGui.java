@@ -2,9 +2,6 @@ package draylar.goml.ui;
 
 import com.mojang.authlib.GameProfile;
 import draylar.goml.registry.GOMLTextures;
-import eu.pb4.sgui.api.SguiUtils;
-import eu.pb4.sgui.api.elements.GuiElementBuilder;
-import eu.pb4.sgui.api.gui.AnvilInputGui;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -16,7 +13,7 @@ import net.minecraft.world.item.Items;
 
 import static draylar.goml.ui.PagedGui.playClickSound;
 
-public class NamePlayerSelectorGui extends AnvilInputGui {
+public class NamePlayerSelectorGui extends NativeAnvilGui {
     private final Runnable regularClose;
     private final Consumer<NameAndId> playerConsumer;
     private final Predicate<NameAndId> shouldDisplay;
@@ -27,7 +24,7 @@ public class NamePlayerSelectorGui extends AnvilInputGui {
     private int timer;
 
     public NamePlayerSelectorGui(ServerPlayer player, Predicate<NameAndId> shouldDisplay, Runnable regularClose, Consumer<NameAndId> playerConsumer) {
-        super(player, false);
+        super(player);
         this.regularClose = regularClose;
         this.playerConsumer = playerConsumer;
         this.shouldDisplay = shouldDisplay;
@@ -126,8 +123,6 @@ public class NamePlayerSelectorGui extends AnvilInputGui {
     }
 
     private void updateBack() {
-        if (this.wrappedMenu != null) {
-            SguiUtils.sendSlotUpdate(this.player, this.wrappedMenu.containerId, 2, this.getGuiElement(2).getItemStackForDisplay(this));
-        }
+        this.refreshAll();
     }
 }

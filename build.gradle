@@ -1,5 +1,4 @@
 import groovy.json.JsonOutput
-import groovy.json.JsonSlurper
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
 
@@ -92,9 +91,6 @@ dependencies {
 
     // These PB4 libraries use vanilla server primitives. Merge them into the mod
     // output so NeoForge transforms their Minecraft references with GOML's code.
-    embeddedLibraries(group: 'eu.pb4', name: 'sgui', version: project.sgui_version) {
-        transitive = false
-    }
     embeddedLibraries(group: 'eu.pb4', name: 'placeholder-api', version: project.placeholder_version) {
         transitive = false
     }
@@ -129,27 +125,6 @@ def generateModMetadata = tasks.register('generateModMetadata', ProcessResources
 
 sourceSets.main.resources.srcDir generateModMetadata
 neoForge.ideSyncTask generateModMetadata
-
-def extractEmbeddedSguiResources = tasks.register('extractEmbeddedSguiResources', Sync) {
-    from {
-        configurations.embeddedLibraries.collect { zipTree(it) }
-    }
-    include 'sgui.mixins.json'
-    into layout.buildDirectory.dir('generated/resources/embeddedSgui')
-
-    doLast {
-        // SGUI targets vanilla/Fabric method bodies. NeoForge adds overloads and
-        // redirects in a few of those methods; keep compatible injections active
-        // while treating the loader-specific optional injections as best effort.
-        def mixinFile = destinationDir.toPath().resolve('sgui.mixins.json').toFile()
-        def mixinConfig = new JsonSlurper().parse(mixinFile)
-        mixinConfig.injectors = (mixinConfig.injectors ?: [:]) + [defaultRequire: 0]
-        mixinFile.text = JsonOutput.prettyPrint(JsonOutput.toJson(mixinConfig)) + System.lineSeparator()
-    }
-}
-
-sourceSets.main.resources.srcDir extractEmbeddedSguiResources
-neoForge.ideSyncTask extractEmbeddedSguiResources
 
 def extractEmbeddedLibraries = tasks.register('extractEmbeddedLibraries', Sync) {
     from {

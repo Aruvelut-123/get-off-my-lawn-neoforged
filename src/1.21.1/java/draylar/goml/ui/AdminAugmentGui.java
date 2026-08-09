@@ -4,8 +4,6 @@ import draylar.goml.GetOffMyLawn;
 import draylar.goml.api.Claim;
 import draylar.goml.api.ClaimBox;
 import draylar.goml.api.event.ClaimEvents;
-import eu.pb4.sgui.api.elements.GuiElementBuilder;
-import eu.pb4.sgui.api.gui.SimpleGui;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.core.component.DataComponents;
@@ -17,7 +15,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.Items;
 
-public class AdminAugmentGui extends SimpleGui {
+public class AdminAugmentGui extends NativeGui {
     private final Claim claim;
     private final Runnable onClose;
     private int claimHeight;
@@ -26,7 +24,7 @@ public class AdminAugmentGui extends SimpleGui {
 
 
     public AdminAugmentGui(Claim claim, ServerPlayer player, @Nullable Runnable onClose) {
-        super(MenuType.HOPPER, player, false);
+        super(MenuType.HOPPER, player);
         this.setTitle(Component.translatable("text.goml.gui.admin_settings.title"));
         this.claim = claim;
         this.onClose = onClose;
@@ -44,7 +42,7 @@ public class AdminAugmentGui extends SimpleGui {
                     } else if (a.isRight) {
                         this.claimRadius += a.shift ? 10 : 1;
                     }
-                    g.getSlot(i).getItemStack().set(DataComponents.CUSTOM_NAME, Component.translatable("text.goml.radius", this.claimRadius).setStyle(Style.EMPTY.withItalic(false)));
+                    g.getGuiElement(i).getItemStack().set(DataComponents.CUSTOM_NAME, Component.translatable("text.goml.radius", this.claimRadius).setStyle(Style.EMPTY.withItalic(false)));
                 })
         );
         this.addSlot(new GuiElementBuilder(Items.ANDESITE_WALL)
@@ -56,7 +54,7 @@ public class AdminAugmentGui extends SimpleGui {
                     } else if (a.isRight) {
                         this.claimHeight += a.shift ? 10 : 1;
                     }
-                    g.getSlot(i).getItemStack().set(DataComponents.CUSTOM_NAME, Component.translatable("text.goml.height", this.claimHeight).setStyle(Style.EMPTY.withItalic(false)));
+                    g.getGuiElement(i).getItemStack().set(DataComponents.CUSTOM_NAME, Component.translatable("text.goml.height", this.claimHeight).setStyle(Style.EMPTY.withItalic(false)));
 
                 })
         );

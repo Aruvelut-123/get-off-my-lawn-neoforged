@@ -12,7 +12,6 @@ inside every GOML jar under `META-INF/licenses/`.
 | Component | Versions used | License | Source |
 | --- | --- | --- | --- |
 | rtree-3i-lite-fabric | 0.3.0 | Apache-2.0 | https://github.com/JamiesWhiteShirt/rtree-3i-lite |
-| Server GUI (sgui) | 1.6.1+1.21.1; 2.0.0+26.1 | LGPL-3.0-or-later | https://github.com/Patbox/sgui |
 | Placeholder API | 2.4.2+1.21; 3.0.0+26.1 | LGPL-3.0-or-later | https://github.com/Patbox/TextPlaceholderAPI |
 | Common Protection API | 1.0.0; 2.0.0 | MIT | https://github.com/Patbox/common-protection-api |
 

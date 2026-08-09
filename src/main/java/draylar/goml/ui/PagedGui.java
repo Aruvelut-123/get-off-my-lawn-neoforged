@@ -2,11 +2,6 @@ package draylar.goml.ui;
 
 import draylar.goml.registry.GOMLTextures;
 import draylar.goml.other.VanillaItems;
-import eu.pb4.sgui.api.elements.GuiElement;
-import eu.pb4.sgui.api.elements.GuiElementBuilder;
-import eu.pb4.sgui.api.elements.GuiElementBuilderCreator;
-import eu.pb4.sgui.api.elements.SimpleGuiElement;
-import eu.pb4.sgui.api.gui.SimpleGui;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSoundEntityPacket;
@@ -24,14 +19,14 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 @ApiStatus.Internal
-public abstract class PagedGui extends SimpleGui {
+public abstract class PagedGui extends NativeGui {
     public static final int PAGE_SIZE = 9 * 4;
     protected final Runnable closeCallback;
     protected int page = 0;
     public boolean ignoreCloseCallback;
 
     public PagedGui(ServerPlayer player, @Nullable Runnable closeCallback) {
-        super(MenuType.GENERIC_9x5, player, false);
+        super(MenuType.GENERIC_9x5, player);
         this.closeCallback = closeCallback;
     }
 
@@ -124,7 +119,7 @@ public abstract class PagedGui extends SimpleGui {
     }
 
     public record DisplayElement(@Nullable Supplier<GuiElement> elementSupplier, @Nullable Slot slot) {
-        private static final DisplayElement EMPTY = DisplayElement.of(new SimpleGuiElement(ItemStack.EMPTY, GuiElement.EMPTY_CALLBACK));
+        private static final DisplayElement EMPTY = DisplayElement.of(new GuiElement(ItemStack.EMPTY, GuiElement.EMPTY_CALLBACK));
         private static final DisplayElement FILLER = DisplayElement.of(
                 new GuiElementBuilder(VanillaItems.get("white_stained_glass_pane"))
                         .setName(Component.empty())
@@ -135,7 +130,7 @@ public abstract class PagedGui extends SimpleGui {
             return new DisplayElement(() -> element, null);
         }
 
-        public static DisplayElement of(GuiElementBuilderCreator<?> element) {
+        public static DisplayElement of(GuiElementBuilder element) {
             return new DisplayElement(element::build, null);
         }
 

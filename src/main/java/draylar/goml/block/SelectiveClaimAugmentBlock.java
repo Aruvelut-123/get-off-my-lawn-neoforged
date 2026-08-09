@@ -5,8 +5,8 @@ import draylar.goml.api.Claim;
 import draylar.goml.api.DataKey;
 import draylar.goml.other.StatusEnum;
 import draylar.goml.ui.PagedGui;
-import eu.pb4.sgui.api.elements.GuiElementBuilder;
-import eu.pb4.sgui.api.gui.SimpleGui;
+import draylar.goml.ui.GuiElementBuilder;
+import draylar.goml.ui.NativeGui;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -57,7 +57,7 @@ public class SelectiveClaimAugmentBlock extends ClaimAugmentBlock {
     @Override
     public void openSettings(Claim claim, ServerPlayer player, @Nullable Runnable closeCallback) {
 
-        var gui = new SimpleGui(MenuType.HOPPER, player, false) {
+        var gui = new NativeGui(MenuType.HOPPER, player) {
             @Override
             public void onManualClose() {
                 if (closeCallback != null) {

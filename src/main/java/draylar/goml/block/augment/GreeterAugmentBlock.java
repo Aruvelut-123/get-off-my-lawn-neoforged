@@ -5,8 +5,8 @@ import draylar.goml.api.Claim;
 import draylar.goml.api.DataKey;
 import draylar.goml.block.ClaimAugmentBlock;
 import draylar.goml.ui.PagedGui;
-import eu.pb4.sgui.api.elements.GuiElementBuilder;
-import eu.pb4.sgui.api.gui.AnvilInputGui;
+import draylar.goml.ui.GuiElementBuilder;
+import draylar.goml.ui.NativeAnvilGui;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -43,7 +43,7 @@ public class GreeterAugmentBlock extends ClaimAugmentBlock {
     public void openSettings(Claim claim, ServerPlayer player, @Nullable Runnable closeCallback) {
         var currentInput = claim.getData(MESSAGE_KEY);
 
-        var ui = new AnvilInputGui(player, false) {
+        var ui = new NativeAnvilGui(player) {
             @Override
             public void onManualClose() {
                 if (closeCallback != null) {

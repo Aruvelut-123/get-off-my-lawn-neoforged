@@ -4,7 +4,6 @@ import com.mojang.authlib.GameProfile;
 import draylar.goml.api.Claim;
 import draylar.goml.api.group.PlayerGroup;
 import draylar.goml.registry.GOMLTextures;
-import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 

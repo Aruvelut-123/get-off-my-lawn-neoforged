@@ -1,11 +1,6 @@
 package draylar.goml.ui;
 
 import draylar.goml.registry.GOMLTextures;
-import eu.pb4.sgui.api.elements.GuiElement;
-import eu.pb4.sgui.api.elements.GuiElementBuilder;
-import eu.pb4.sgui.api.elements.GuiElementBuilderInterface;
-import eu.pb4.sgui.api.elements.GuiElementInterface;
-import eu.pb4.sgui.api.gui.SimpleGui;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -19,17 +14,16 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 @ApiStatus.Internal
-public abstract class PagedGui extends SimpleGui {
+public abstract class PagedGui extends NativeGui {
     public static final int PAGE_SIZE = 9 * 4;
     protected final Runnable closeCallback;
     protected int page = 0;
     public boolean ignoreCloseCallback;
 
     public PagedGui(ServerPlayer player, @Nullable Runnable closeCallback) {
-        super(MenuType.GENERIC_9x5, player, false);
+        super(MenuType.GENERIC_9x5, player);
         this.closeCallback = closeCallback;
     }
-
 
     public void refreshOpen() {
         this.updateDisplay();
@@ -37,8 +31,8 @@ public abstract class PagedGui extends SimpleGui {
     }
 
     @Override
-    public void onClose() {
-        if (this.closeCallback != null && !ignoreCloseCallback) {
+    public void onManualClose() {
+        if (this.closeCallback != null && !this.ignoreCloseCallback) {
             this.closeCallback.run();
         }
     }
@@ -62,34 +56,18 @@ public abstract class PagedGui extends SimpleGui {
     }
 
     protected void updateDisplay() {
-        var offset = this.page * PAGE_SIZE;
-
+        int offset = this.page * PAGE_SIZE;
         for (int i = 0; i < PAGE_SIZE; i++) {
-            var element = this.getElement(offset + i);
-
-            if (element == null) {
-                element = DisplayElement.empty();
-            }
-
-            if (element.element() != null) {
-                this.setSlot(i, element.element());
-            } else if (element.slot() != null) {
-                this.setSlotRedirect(i, element.slot());
-            }
+            DisplayElement element = this.getElement(offset + i);
+            if (element == null) element = DisplayElement.empty();
+            if (element.element() != null) this.setSlot(i, element.element());
+            else if (element.slot() != null) this.setSlot(i, element.slot());
         }
-
         for (int i = 0; i < 9; i++) {
-            var navElement = this.getNavElement(i);
-
-            if (navElement == null) {
-                navElement = DisplayElement.EMPTY;
-            }
-
-            if (navElement.element != null) {
-                this.setSlot(i + PAGE_SIZE, navElement.element);
-            } else if (navElement.slot != null) {
-                this.setSlotRedirect(i + PAGE_SIZE, navElement.slot);
-            }
+            DisplayElement element = this.getNavElement(i);
+            if (element == null) element = DisplayElement.empty();
+            if (element.element() != null) this.setSlot(i + PAGE_SIZE, element.element());
+            else if (element.slot() != null) this.setSlot(i + PAGE_SIZE, element.slot());
         }
     }
 
@@ -105,33 +83,28 @@ public abstract class PagedGui extends SimpleGui {
         return switch (id) {
             case 1 -> DisplayElement.previousPage(this);
             case 3 -> DisplayElement.nextPage(this);
-            case 7 -> DisplayElement.of(
-                    new GuiElementBuilder(Items.STRUCTURE_VOID)
-                            .setName(Component.translatable(this.closeCallback != null ? "text.goml.gui.back" : "text.goml.gui.close").withStyle(ChatFormatting.RED))
-                            .hideDefaultTooltip().noDefaults()
-                            .setCallback((x, y, z) -> {
-                                playClickSound(this.player);
-                                this.close(this.closeCallback != null);
-                            })
-            );
+            case 7 -> DisplayElement.of(new GuiElementBuilder(Items.STRUCTURE_VOID)
+                    .setName(Component.translatable(this.closeCallback != null ? "text.goml.gui.back" : "text.goml.gui.close").withStyle(ChatFormatting.RED))
+                    .hideDefaultTooltip()
+                    .setCallback(() -> {
+                        playClickSound(this.player);
+                        this.close(this.closeCallback != null);
+                    }));
             default -> DisplayElement.filler();
         };
     }
 
-    public record DisplayElement(@Nullable GuiElementInterface element, @Nullable Slot slot) {
-        private static final DisplayElement EMPTY = DisplayElement.of(new GuiElement(ItemStack.EMPTY, GuiElementInterface.EMPTY_CALLBACK));
-        private static final DisplayElement FILLER = DisplayElement.of(
-                new GuiElementBuilder(Items.WHITE_STAINED_GLASS_PANE)
-                        .setName(Component.empty())
-                        .hideDefaultTooltip().noDefaults()
-        );
+    public record DisplayElement(@Nullable GuiElement element, @Nullable Slot slot) {
+        private static final DisplayElement EMPTY = DisplayElement.of(new GuiElement(ItemStack.EMPTY, GuiElement.EMPTY_CALLBACK));
+        private static final DisplayElement FILLER = DisplayElement.of(new GuiElementBuilder(Items.WHITE_STAINED_GLASS_PANE)
+                .setName(Component.empty()).hideDefaultTooltip());
 
-        public static DisplayElement of(GuiElementInterface element) {
+        public static DisplayElement of(GuiElement element) {
             return new DisplayElement(element, null);
         }
 
-        public static DisplayElement of(GuiElementBuilderInterface<?> element) {
-            return new DisplayElement(element.build(), null);
+        public static DisplayElement of(GuiElementBuilder builder) {
+            return of(builder.build());
         }
 
         public static DisplayElement of(Slot slot) {
@@ -140,46 +113,32 @@ public abstract class PagedGui extends SimpleGui {
 
         public static DisplayElement nextPage(PagedGui gui) {
             if (gui.canNextPage()) {
-                return DisplayElement.of(
-                        new GuiElementBuilder(Items.PLAYER_HEAD)
-                                .setName(Component.translatable("text.goml.gui.next_page").withStyle(ChatFormatting.WHITE))
-                                .hideDefaultTooltip().noDefaults()
-                                .setSkullOwner(GOMLTextures.GUI_NEXT_PAGE)
-                                .setCallback((x, y, z) -> {
-                                    playClickSound(gui.player);
-                                    gui.nextPage();
-                                })
-                );
-            } else {
-                return DisplayElement.of(
-                        new GuiElementBuilder(Items.PLAYER_HEAD)
-                                .setName(Component.translatable("text.goml.gui.next_page").withStyle(ChatFormatting.DARK_GRAY))
-                                .hideDefaultTooltip().noDefaults()
-                                .setSkullOwner(GOMLTextures.GUI_NEXT_PAGE_BLOCKED)
-                );
+                return of(new GuiElementBuilder(Items.PLAYER_HEAD)
+                        .setName(Component.translatable("text.goml.gui.next_page").withStyle(ChatFormatting.WHITE))
+                        .hideDefaultTooltip().setProfileSkinTexture(GOMLTextures.GUI_NEXT_PAGE)
+                        .setCallback(() -> {
+                            playClickSound(gui.player);
+                            gui.nextPage();
+                        }));
             }
+            return of(new GuiElementBuilder(Items.PLAYER_HEAD)
+                    .setName(Component.translatable("text.goml.gui.next_page").withStyle(ChatFormatting.DARK_GRAY))
+                    .hideDefaultTooltip().setProfileSkinTexture(GOMLTextures.GUI_NEXT_PAGE_BLOCKED));
         }
 
         public static DisplayElement previousPage(PagedGui gui) {
             if (gui.canPreviousPage()) {
-                return DisplayElement.of(
-                        new GuiElementBuilder(Items.PLAYER_HEAD)
-                                .setName(Component.translatable("text.goml.gui.previous_page").withStyle(ChatFormatting.WHITE))
-                                .hideDefaultTooltip().noDefaults()
-                                .setSkullOwner(GOMLTextures.GUI_PREVIOUS_PAGE)
-                                .setCallback((x, y, z) -> {
-                                    playClickSound(gui.player);
-                                    gui.previousPage();
-                                })
-                );
-            } else {
-                return DisplayElement.of(
-                        new GuiElementBuilder(Items.PLAYER_HEAD)
-                                .setName(Component.translatable("text.goml.gui.previous_page").withStyle(ChatFormatting.DARK_GRAY))
-                                .hideDefaultTooltip().noDefaults()
-                                .setSkullOwner(GOMLTextures.GUI_PREVIOUS_PAGE_BLOCKED)
-                );
+                return of(new GuiElementBuilder(Items.PLAYER_HEAD)
+                        .setName(Component.translatable("text.goml.gui.previous_page").withStyle(ChatFormatting.WHITE))
+                        .hideDefaultTooltip().setProfileSkinTexture(GOMLTextures.GUI_PREVIOUS_PAGE)
+                        .setCallback(() -> {
+                            playClickSound(gui.player);
+                            gui.previousPage();
+                        }));
             }
+            return of(new GuiElementBuilder(Items.PLAYER_HEAD)
+                    .setName(Component.translatable("text.goml.gui.previous_page").withStyle(ChatFormatting.DARK_GRAY))
+                    .hideDefaultTooltip().setProfileSkinTexture(GOMLTextures.GUI_PREVIOUS_PAGE_BLOCKED));
         }
 
         public static DisplayElement filler() {
@@ -191,7 +150,7 @@ public abstract class PagedGui extends SimpleGui {
         }
     }
 
-    public static final void playClickSound(ServerPlayer player) {
+    public static void playClickSound(ServerPlayer player) {
         player.playNotifySound(SoundEvents.UI_BUTTON_CLICK.value(), SoundSource.MASTER, 1, 1);
     }
 }

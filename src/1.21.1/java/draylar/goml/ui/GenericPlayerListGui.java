@@ -2,7 +2,6 @@ package draylar.goml.ui;
 
 import com.mojang.authlib.GameProfile;
 import draylar.goml.registry.GOMLTextures;
-import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 

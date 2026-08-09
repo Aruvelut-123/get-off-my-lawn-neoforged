@@ -3,7 +3,6 @@ package draylar.goml.ui;
 import com.mojang.authlib.GameProfile;
 import draylar.goml.api.group.PlayerGroupProvider;
 import draylar.goml.registry.GOMLTextures;
-import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;

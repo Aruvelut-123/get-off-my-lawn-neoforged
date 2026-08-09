@@ -15,8 +15,8 @@ import draylar.goml.ui.AdminAugmentGui;
 import draylar.goml.ui.ClaimAugmentGui;
 import draylar.goml.ui.ClaimPlayerListGui;
 import draylar.goml.ui.PagedGui;
-import eu.pb4.sgui.api.elements.GuiElementBuilder;
-import eu.pb4.sgui.api.gui.SimpleGui;
+import draylar.goml.ui.GuiElementBuilder;
+import draylar.goml.ui.NativeGui;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
@@ -361,7 +361,7 @@ public class Claim {
     }
 
     public void openUi(ServerPlayer player) {
-        var gui = new SimpleGui(MenuType.HOPPER, player, false);
+        var gui = new NativeGui(MenuType.HOPPER, player);
         gui.setTitle(Component.translatable("text.goml.gui.claim.title"));
 
         gui.addSlot(GuiElementBuilder.from(this.icon)

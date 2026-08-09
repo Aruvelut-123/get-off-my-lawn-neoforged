@@ -3,7 +3,6 @@ package draylar.goml.ui;
 import com.mojang.authlib.GameProfile;
 import draylar.goml.api.group.PlayerGroup;
 import draylar.goml.api.group.PlayerGroupProvider;
-import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
