@@ -11,7 +11,6 @@ same mapping in component-first form.
 
 ## `LGPL-3.0-only.txt`
 
-- Server GUI 1.6.1+1.21.1 and 2.0.0+26.1 — embedded
 - Placeholder API 2.4.2+1.21 and 3.0.0+26.1 — embedded
 
 Some upstream PB4 projects declare `LGPL-3.0-or-later`; the supplied text is
