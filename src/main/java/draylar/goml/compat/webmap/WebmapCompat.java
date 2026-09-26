@@ -57,6 +57,9 @@ public abstract class WebmapCompat {
         if (ModList.get().isLoaded("dynmap")) {
             registerIntegration(DynmapCompat.getInstance());
         }
+        if (ModList.get().isLoaded("squaremap")) {
+            registerIntegration(SquaremapCompat.getInstance());
+        }
 
         for (ServerLevel world : _server.getAllLevels()) {
             GetOffMyLawn.CLAIM.get(world).getClaims().values().forEach(WebmapCompat::createClaimMarker);

@@ -106,6 +106,7 @@ dependencies {
 
     compileOnly "us.dynmap:DynmapCoreAPI:${project.dynmap_version}"
     compileOnly "de.bluecolored:bluemap-api:${project.bluemap_version}"
+    compileOnly "xyz.jpenilla:squaremap-api:${project.squaremap_version}"
 }
 
 def remapMinecraftIntermediary = tasks.register('remapMinecraftIntermediary', RemapJarTask) {
