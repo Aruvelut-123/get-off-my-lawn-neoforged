@@ -27,6 +27,14 @@ jobs:
             minecraft: '26.1.2'
             java: 25
             project_cache: .gradle
+          - os: ubuntu-latest
+            minecraft: '26.2'
+            java: 25
+            project_cache: .gradle
+          - os: ubuntu-latest
+            minecraft: '26.3'
+            java: 25
+            project_cache: .gradle
     runs-on: ${{ matrix.os }}
     steps:
       - name: checkout repository

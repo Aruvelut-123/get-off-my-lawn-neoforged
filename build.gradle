@@ -120,7 +120,12 @@ def generateModMetadata = tasks.register('generateModMetadata', ProcessResources
 
     inputs.properties replaceProperties
     expand replaceProperties
-    from 'src/main/templates'
+    def templateDir = 'src/main/templates'
+    def versionTemplateDir = "src/${project.source_line}/templates"
+    if (project.source_line != 'main' && file(versionTemplateDir).exists() && file(versionTemplateDir).isDirectory()) {
+        templateDir = versionTemplateDir
+    }
+    from templateDir
     into layout.buildDirectory.dir('generated/sources/modMetadata')
 }
 
