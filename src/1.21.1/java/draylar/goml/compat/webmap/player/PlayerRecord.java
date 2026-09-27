@@ -60,6 +60,13 @@ public class PlayerRecord {
         // If name is still null after player resolution, assume it failed and use defaults
         if (this.name == null) {
             this.name = name;
+        }
+
+        // The Mojang profile may be missing the "textures" property (offline mode,
+        // rate limiting, cached responses without skins, ...) while the name was
+        // resolved successfully. Never leave the icon null — fall back to the
+        // built-in default icon so web map rendering cannot NPE.
+        if (this.playerIcon == null) {
             this.playerIcon = new PlayerHeadIcon(null);
         }
 

@@ -1,6 +1,7 @@
 package draylar.goml.compat.webmap;
 
 import draylar.goml.api.Claim;
+import draylar.goml.compat.webmap.player.PlayerHeadIcon;
 import draylar.goml.compat.webmap.player.PlayerRecord;
 import draylar.goml.api.ClaimBox;
 import draylar.goml.api.ClaimUtils;
@@ -163,7 +164,7 @@ public final class ClaimMarker {
 		if (!this.owners.isEmpty()) {
 			StringBuilder ownersItems = new StringBuilder();
 			for (PlayerRecord owner : this.owners) {
-				ownersItems.append(LIST_ITEM.formatted(owner.getHeadIcon().getHtml(), owner.getName()));
+				ownersItems.append(LIST_ITEM.formatted(headIconHtml(owner), owner.getName()));
 			}
 			String ownersSection = LIST_SECTION_CONTAINER.formatted(this.labels.get("owners"), ownersItems.toString());
 			content.append(ownersSection);
@@ -173,7 +174,7 @@ public final class ClaimMarker {
 		if (!this.trusted.isEmpty()) {
 			StringBuilder trustedItems = new StringBuilder();
 			for (PlayerRecord trustedPlayer : this.trusted) {
-				trustedItems.append(LIST_ITEM.formatted(trustedPlayer.getHeadIcon().getHtml(), trustedPlayer.getName()));
+				trustedItems.append(LIST_ITEM.formatted(headIconHtml(trustedPlayer), trustedPlayer.getName()));
 			}
 			String trustedSection = LIST_SECTION_CONTAINER.formatted(this.labels.get("trusted"), trustedItems.toString());
 			content.append(trustedSection);
@@ -183,17 +184,32 @@ public final class ClaimMarker {
 		if (!this.augments.isEmpty()) {
 			StringBuilder augmentsItems = new StringBuilder();
 			for (PlayerRecord augment : this.augments) {
-				augmentsItems.append(LIST_ITEM.formatted(augment.getHeadIcon().getHtml(), augment.getName()));
+				augmentsItems.append(LIST_ITEM.formatted(headIconHtml(augment), augment.getName()));
 			}
 			String augmentsSection = LIST_SECTION_CONTAINER.formatted(this.labels.get("augments"), augmentsItems.toString());
 			content.append(augmentsSection);
 		}
 
 		return DETAILS_CONTAINER.formatted(
-			this.claimAnchorType.getHeadIcon().getHtml("24px"),
+			headIconHtml(this.claimAnchorType, "24px"),
 			this.claimAnchorType.getName(),
 			content.toString()
 		);
+	}
+
+	/**
+	 * Renders the head icon HTML for a player record, falling back to the
+	 * built-in default icon when the record has no icon. Guards against
+	 * {@code PlayerRecord.getHeadIcon()} returning {@code null} (offline mode,
+	 * failed Mojang lookups, etc.).
+	 */
+	private static String headIconHtml(PlayerRecord record) {
+		return headIconHtml(record, "16px");
+	}
+
+	private static String headIconHtml(PlayerRecord record, String size) {
+		PlayerHeadIcon icon = record.getHeadIcon();
+		return icon == null ? new PlayerHeadIcon(null).getHtml(size) : icon.getHtml(size);
 	}
 
 	private static String getLocalizedLabel(String key) {
