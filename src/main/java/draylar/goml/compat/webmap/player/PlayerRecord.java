@@ -14,7 +14,6 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -28,6 +27,7 @@ import java.util.UUID;
  */
 public class PlayerRecord {
     private static final String PROFILE_LOOKUP_URL = "https://sessionserver.mojang.com/session/minecraft/profile/";
+    private static final String PLAYER_HEAD_URL = "https://mc-heads.net/avatar/%s/16";
     private static final Integer REQUEST_TIMEOUT = 3000;
 
     private UUID uuid = null;
@@ -55,6 +55,7 @@ public class PlayerRecord {
     public PlayerRecord(UUID uuid, MinecraftServer server, @Nullable String name) {
         this.server = server;
         this.uuid = uuid;
+        this.playerIcon = PlayerHeadIcon.fromUrl(PLAYER_HEAD_URL.formatted(uuid.toString().replace("-", "")));
         this.resolvePlayer();
 
         // If name is still null after player resolution, assume it failed and use defaults
@@ -126,18 +127,9 @@ public class PlayerRecord {
                     break mainTry;
                 }
 
-                // Extract player data and create icon
+                // Player avatars are loaded by the map browser from mc-heads.net.
+                // Keep this server-side request focused on resolving the display name.
                 this.name = (String) profile.get("name");
-                @SuppressWarnings("unchecked")
-                List<Map<String, Object>> properties = (List<Map<String, Object>>) profile.get("properties");
-                if (properties != null) {
-                    for (Map<String, Object> property : properties) {
-                        if ("textures".equals(property.get("name"))) {
-                            this.playerIcon = new PlayerHeadIcon(getHeadImage((String) property.get("value")).orElse(null));
-                            break;
-                        }
-                    }
-                }
             } catch (Exception exception) {
                 GetOffMyLawn.LOGGER.warn("Unable to get data for player with UUID {}: ", this.uuid, exception);
             }

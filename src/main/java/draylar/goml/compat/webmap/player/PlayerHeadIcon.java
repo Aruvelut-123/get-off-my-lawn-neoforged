@@ -10,6 +10,7 @@ public class PlayerHeadIcon {
     private final static String DEFAULT_ICON = "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAwklEQVQImWN0NlP79PkTMwPjr39///75x8TExMzCxM7GyfLl69dvX75eefSJAQZ05Pj+sP9lYvj/HyJ6aHLt7s4CBgaGK48+cXGwspRHhWzrKPr89RsLE+vnr58hmpIdrVg4WFi/ffvJ+fu7X8cMiOi8vFBuAWGWV4/vCvLwPXn3DiK6rTGV8dfHW7dfME5N9fn3/dOHP4x/GRiZGf7/ZWDkY/n79Q8Ty9N3H799+cTAwNC/4wIDA0NbpMP3P0x/GRgBboZUTsEWveAAAAAASUVORK5CYII=";
 
     private String rawIcon;
+    private String remoteUrl;
     private Boolean isBlank = false;
 
 
@@ -28,6 +29,26 @@ public class PlayerHeadIcon {
         } else {
             throw new IllegalArgumentException("Error during icon creation: Not a valid base64 PNG image!");
         }
+    }
+
+    /**
+     * Creates an icon backed by a browser-loaded URL.
+     *
+     * <p>Player avatars use this instead of embedding a data URI. SquareMap
+     * serves marker tooltips to the browser, so loading the avatar there avoids
+     * server-side skin downloads and works with SquareMap's image policy.</p>
+     *
+     * @param url the remote image URL, or null to use the default icon
+     * @return a URL-backed icon or the default icon when the URL is blank
+     */
+    public static PlayerHeadIcon fromUrl(@Nullable String url) {
+        if (url == null || url.isBlank()) {
+            return new PlayerHeadIcon(null);
+        }
+
+        PlayerHeadIcon icon = new PlayerHeadIcon(null);
+        icon.remoteUrl = url;
+        return icon;
     }
 
     /**
@@ -58,8 +79,23 @@ public class PlayerHeadIcon {
      * @implNote Returns an empty string if used during construction
      */
     public String getHtml(String size, String css){
-        return (this.isBlank) ? "" : 
-        "<img alt=\"[icon]\" src=\"data:image/png;base64," + this.rawIcon + "\" width=\"" + size + "\" height=\"" + size + "\" style=\"vertical-align:middle;image-rendering:pixelated;" + css + "\" />";
+        if (this.isBlank) {
+            return "";
+        }
+
+        String source = this.remoteUrl == null
+                ? "data:image/png;base64," + this.rawIcon
+                : escapeHtmlAttribute(this.remoteUrl);
+
+        return "<img alt=\"[icon]\" src=\"" + source + "\" width=\"" + size + "\" height=\"" + size + "\" style=\"vertical-align:middle;image-rendering:pixelated;" + css + "\" />";
+    }
+
+    private static String escapeHtmlAttribute(String value) {
+        return value
+                .replace("&", "&amp;")
+                .replace("\"", "&quot;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;");
     }
 
     private boolean validatePng(String raw){
